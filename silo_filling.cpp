@@ -10,12 +10,13 @@
 using namespace cv;
 
 struct InRangeParams{
-    int h_min;
-    int s_min;
-    int v_min;
-    int h_max;
-    int s_max;
-    int v_max;
+    typedef int ValueType;
+    ValueType h_min;
+    ValueType s_min;
+    ValueType v_min;
+    ValueType h_max;
+    ValueType s_max;
+    ValueType v_max;
 };
 
 void execute_calc(InputArray, OutputArray, const InRangeParams&);
@@ -23,36 +24,57 @@ void execute_calc(InputArray, OutputArray, const InRangeParams&);
 template<int DilateErodeTimes>
 void closing_opening(InputArray, OutputArray);
 
-//グローバル変数を作りたくないのでJava方式で実行
-class Application final{
+//グローバル変数を包む構造体
+//グローバル変数が必要なのでやむなし
+//必要なアクセス以外しないよう、またデバッグがやりやすいようゲッター、セッター、ラッパーで包んでいる
+//無名構造体にすることで1つしか作らないでねという意思表示をした(staticだと初期化まわりが大変らしい)(decltypeでインスタンスは作れてしまう)
+struct {
     private:
-        static Mat image;
-        static Mat canny_img;
-        static InRangeParams params;
-
+        bool execute_calc_flag_ = false;
+        InRangeParams params_ = {0};
+        VideoCapture video_capture_;
+        Mat output_img_;
     public:
-        Application() = delete;
-        Application(const Application&) = delete;
-        Application(Application&&) = delete;
-        Application& operator=(const Application&) = delete;
-        Application& operator=(Application&&) = delete;
-        ~Application() = delete;
+        /* execute_calc_flag_ */
+        inline void set_calc_flag(void){execute_calc_flag_ = true;}
+        inline void clear_calc_flag(void){execute_calc_flag_ = false;}
 
-        static bool load_image(const cv::String&);
+        /* params_ */
+        //Todo: 値チェック
+        //Todo: インデックスをテンプレート化または列挙子にする
+        //取得と設定を同時に行うことを強制する(取得のみすることもできる)
+        //取得(ゲット)→更新→更新の適用(セット)を呼び出し元に任せると、更新の適用忘れがあるかもしれないので
+        inline InRangeParams replace_param(const InRangeParams::ValueType val, int8_t index){
+            switch(index){
+                case 0: params_.h_min = val; break;
+                case 1: params_.h_max = val; break;
+                case 2: params_.s_min = val; break;
+                case 3: params_.s_max = val; break;
+                case 4: params_.v_min = val; break;
+                case 5: params_.v_max = val; break;
+            }
+            return params_;
+        }
+        inline InRangeParams replace_param(){return params_;}
 
-        static int main();
-};
+        /*video_capture_*/
+        //Todo: 複数カメラ対応
+        inline bool open_cameras(void){
+            video_capture_.open(0);
+            return video_capture_.isOpened();
+        }
+        //Todo: 複数カメラ対応(1つのメソッドで全部grab)
+        inline bool grabs(void){return video_capture_.grab();}
+        //Todo: 複数カメラ対応(テンプレートでカメラ毎)
+        inline bool retrieve(OutputArray output, int flag=0){return video_capture_.retrieve(output, flag);}
 
-Mat Application::image;
-Mat Application::canny_img;
-InRangeParams Application::params;
+        /*output_img*/
+        //Matは使いまわせるのでゲッターのみ
+        //参照ではなくコピーを返す(呼び出し元でreleaseされたら厄介(ってほどでもないんだけどね。でもMat自体が参照だからコピーで返すのが普通じゃない？))
+        inline Mat get_output_img(void){return output_img_;}
+} grobal_variables;
 
-bool Application::load_image(const cv::String& file_name){
-    Application::image = imread(file_name);
-    return image.data;
-}
-
-int Application::main(){
+int main(){
     utils::logging::setLogLevel(utils::logging::LogLevel::LOG_LEVEL_DEBUG);
 
     const String window_name = "Canny";
@@ -63,8 +85,8 @@ int Application::main(){
         nullptr,
         255,
         [](int val, void*){
-            Application::params.h_min = val;
-            execute_calc(Application::image, Application::canny_img, Application::params);
+            grobal_variables.replace_param(val, 0);
+            grobal_variables.set_calc_flag();
         }
     );
     createTrackbar(
@@ -73,8 +95,8 @@ int Application::main(){
         nullptr,
         255,
         [](int val, void*){
-            Application::params.h_max = val;
-            execute_calc(Application::image, Application::canny_img, Application::params);
+            grobal_variables.replace_param(val, 1);
+            grobal_variables.set_calc_flag();
         }
     );
     createTrackbar(
@@ -83,8 +105,8 @@ int Application::main(){
         nullptr,
         255,
         [](int val, void*){
-            Application::params.s_min = val;
-            execute_calc(Application::image, Application::canny_img, Application::params);
+            grobal_variables.replace_param(val, 2);
+            grobal_variables.set_calc_flag();
         }
     );
     createTrackbar(
@@ -93,8 +115,8 @@ int Application::main(){
         nullptr,
         255,
         [](int val, void*){
-            Application::params.s_max = val;
-            execute_calc(Application::image, Application::canny_img, Application::params);
+            grobal_variables.replace_param(val, 3);
+            grobal_variables.set_calc_flag();
         }
     );
     createTrackbar(
@@ -103,8 +125,8 @@ int Application::main(){
         nullptr,
         255,
         [](int val, void*){
-            Application::params.v_min = val;
-            execute_calc(Application::image, Application::canny_img, Application::params);
+            grobal_variables.replace_param(val, 4);
+            grobal_variables.set_calc_flag();
         }
     );
     createTrackbar(
@@ -113,27 +135,26 @@ int Application::main(){
         nullptr,
         255,
         [](int val, void*){
-            Application::params.v_max = val;
-            execute_calc(Application::image, Application::canny_img, Application::params);
+            grobal_variables.replace_param(val, 5);
+            grobal_variables.set_calc_flag();
         }
     );
 
-    execute_calc(Application::image, Application::canny_img, Application::params);
+    CV_Assert(grobal_variables.open_cameras());
 
-    imshow(window_name, Application::canny_img);
+    do{
+        //grobal_variables.grabs();
+        Mat input_img;
+        grobal_variables.retrieve(input_img);
+        
+        execute_calc(input_img, grobal_variables.get_output_img(), grobal_variables.replace_param());
 
-    while(waitKey(1) == -1){
-        imshow(window_name, Application::canny_img);
-    }
+        imshow(window_name, grobal_variables.get_output_img());
+    }while(waitKey(1) == -1);
 
     CV_LOG_DEBUG(nullptr, "clean up");
 
     return 0;
-}
-
-int main(){
-    Application::load_image("resourse/ball.png");
-    return Application::main();
 }
 
 void execute_calc(InputArray input, OutputArray output, const InRangeParams& params){
@@ -185,13 +206,12 @@ void closing_opening(InputArray input, OutputArray output){
     SWTICH_BUF();
     erode(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
     SWTICH_BUF();
-    /*
+
     //opening
     erode(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
     SWTICH_BUF();
     dilate(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
     SWTICH_BUF();
-    */
 
     output.move(BUF_TO_READ);
 }
