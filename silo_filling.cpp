@@ -33,14 +33,9 @@ void closing(InputArray, OutputArray);
 //無名構造体にすることで1つしか作らないでねという意思表示をした(staticだと初期化まわりが大変らしい)(decltypeでインスタンスは作れてしまう)
 struct {
     private:
-        bool execute_calc_flag_ = false;
         InRangeParams params_ = {0};
         VideoCapture video_capture_;
     public:
-        /* execute_calc_flag_ */
-        inline void set_calc_flag(void){execute_calc_flag_ = true;}
-        inline void clear_calc_flag(void){execute_calc_flag_ = false;}
-
         /* params_ */
         //Todo: 値チェック
         //Todo: インデックスをテンプレート化または列挙子にする
@@ -85,7 +80,6 @@ int main(){
         255,
         [](int val, void*){
             grobal_variables.replace_param(val, 0);
-            grobal_variables.set_calc_flag();
         }
     );
     createTrackbar(
@@ -95,7 +89,6 @@ int main(){
         255,
         [](int val, void*){
             grobal_variables.replace_param(val, 1);
-            grobal_variables.set_calc_flag();
         }
     );
     createTrackbar(
@@ -105,7 +98,6 @@ int main(){
         255,
         [](int val, void*){
             grobal_variables.replace_param(val, 2);
-            grobal_variables.set_calc_flag();
         }
     );
     createTrackbar(
@@ -115,7 +107,6 @@ int main(){
         255,
         [](int val, void*){
             grobal_variables.replace_param(val, 3);
-            grobal_variables.set_calc_flag();
         }
     );
     createTrackbar(
@@ -125,7 +116,6 @@ int main(){
         255,
         [](int val, void*){
             grobal_variables.replace_param(val, 4);
-            grobal_variables.set_calc_flag();
         }
     );
     createTrackbar(
@@ -135,7 +125,6 @@ int main(){
         255,
         [](int val, void*){
             grobal_variables.replace_param(val, 5);
-            grobal_variables.set_calc_flag();
         }
     );
 
