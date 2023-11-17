@@ -66,7 +66,7 @@ struct {
         inline bool retrieve(OutputArray output, int flag=0){return video_capture_.retrieve(output, flag);}
         //デバッグ用
         inline bool read(OutputArray output){return video_capture_.read(output);}
-} grobal_variables;
+} global_variables;
 
 int main(){
     utils::logging::setLogLevel(utils::logging::LogLevel::LOG_LEVEL_DEBUG);
@@ -79,7 +79,7 @@ int main(){
         nullptr,
         255,
         [](int val, void*){
-            grobal_variables.replace_param(val, 0);
+            global_variables.replace_param(val, 0);
         }
     );
     createTrackbar(
@@ -88,7 +88,7 @@ int main(){
         nullptr,
         255,
         [](int val, void*){
-            grobal_variables.replace_param(val, 1);
+            global_variables.replace_param(val, 1);
         }
     );
     createTrackbar(
@@ -97,7 +97,7 @@ int main(){
         nullptr,
         255,
         [](int val, void*){
-            grobal_variables.replace_param(val, 2);
+            global_variables.replace_param(val, 2);
         }
     );
     createTrackbar(
@@ -106,7 +106,7 @@ int main(){
         nullptr,
         255,
         [](int val, void*){
-            grobal_variables.replace_param(val, 3);
+            global_variables.replace_param(val, 3);
         }
     );
     createTrackbar(
@@ -115,7 +115,7 @@ int main(){
         nullptr,
         255,
         [](int val, void*){
-            grobal_variables.replace_param(val, 4);
+            global_variables.replace_param(val, 4);
         }
     );
     createTrackbar(
@@ -124,18 +124,18 @@ int main(){
         nullptr,
         255,
         [](int val, void*){
-            grobal_variables.replace_param(val, 5);
+            global_variables.replace_param(val, 5);
         }
     );
 
-    CV_Assert(grobal_variables.open_cameras());
+    CV_Assert(global_variables.open_cameras());
 
     do{
-        grobal_variables.grabs();
+        global_variables.grabs();
         Mat input_img, output1_img, output2_img, output3_img;
-        grobal_variables.retrieve(input_img);
+        global_variables.retrieve(input_img);
 
-        execute_calc(input_img, output1_img, output2_img, output3_img, grobal_variables.replace_param());
+        execute_calc(input_img, output1_img, output2_img, output3_img, global_variables.replace_param());
 
         imshow("output1", output1_img);
         imshow("output2", output2_img);
