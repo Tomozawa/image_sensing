@@ -19,10 +19,13 @@ struct InRangeParams{
     ValueType v_max;
 };
 
-void execute_calc(InputArray, OutputArray, const InRangeParams&);
+void execute_calc(InputArray, OutputArray, OutputArray, OutputArray, const InRangeParams&);
 
-template<int DilateErodeTimes>
-void closing_opening(InputArray, OutputArray);
+template<unsigned char DilateErodeTimes>
+void opening(InputArray, OutputArray);
+
+template<unsigned char DilateErodeTims>
+void closing(InputArray, OutputArray);
 
 //グローバル変数を包む構造体
 //グローバル変数が必要なのでやむなし
@@ -33,7 +36,6 @@ struct {
         bool execute_calc_flag_ = false;
         InRangeParams params_ = {0};
         VideoCapture video_capture_;
-        Mat output_img_;
     public:
         /* execute_calc_flag_ */
         inline void set_calc_flag(void){execute_calc_flag_ = true;}
@@ -67,11 +69,8 @@ struct {
         inline bool grabs(void){return video_capture_.grab();}
         //Todo: 複数カメラ対応(テンプレートでカメラ毎)
         inline bool retrieve(OutputArray output, int flag=0){return video_capture_.retrieve(output, flag);}
-
-        /*output_img*/
-        //Matは使いまわせるのでゲッターのみ
-        //参照ではなくコピーを返す(呼び出し元でreleaseされたら厄介(ってほどでもないんだけどね。でもMat自体が参照だからコピーで返すのが普通じゃない？))
-        inline Mat get_output_img(void){return output_img_;}
+        //デバッグ用
+        inline bool read(OutputArray output){return video_capture_.read(output);}
 } grobal_variables;
 
 int main(){
@@ -143,13 +142,15 @@ int main(){
     CV_Assert(grobal_variables.open_cameras());
 
     do{
-        //grobal_variables.grabs();
-        Mat input_img;
+        grobal_variables.grabs();
+        Mat input_img, output1_img, output2_img, output3_img;
         grobal_variables.retrieve(input_img);
-        
-        execute_calc(input_img, grobal_variables.get_output_img(), grobal_variables.replace_param());
 
-        imshow(window_name, grobal_variables.get_output_img());
+        execute_calc(input_img, output1_img, output2_img, output3_img, grobal_variables.replace_param());
+
+        imshow("output1", output1_img);
+        imshow("output2", output2_img);
+        imshow("output3", output3_img);
     }while(waitKey(1) == -1);
 
     CV_LOG_DEBUG(nullptr, "clean up");
@@ -157,7 +158,7 @@ int main(){
     return 0;
 }
 
-void execute_calc(InputArray input, OutputArray output, const InRangeParams& params){
+void execute_calc(InputArray input, OutputArray output1, OutputArray output2, OutputArray output3, const InRangeParams& params){
     Mat image, hsv, blur, hsv_filtered, morph, canny_img, image_with_contours;
     std::vector<std::vector<Point>> contours;
     std::vector<Vec4i> hierarchy;
@@ -165,12 +166,12 @@ void execute_calc(InputArray input, OutputArray output, const InRangeParams& par
     image = input.getMat();
 
     cvtColor(image, hsv, ColorConversionCodes::COLOR_BGR2HSV_FULL);
-    GaussianBlur(hsv, blur, Size(5, 5), 0, 0);
+    GaussianBlur(hsv, blur, Size(7, 7), 5, 5);
     Scalar lowerb(params.h_min, params.s_min, params.v_min), upperb(params.h_max, params.s_max, params.v_max);
     inRange(blur, lowerb, upperb, hsv_filtered);
     
     Canny(hsv_filtered, canny_img, 25, 75);
-    closing_opening<1>(canny_img/*hsv_filtered*/, morph);
+    closing<1>(canny_img, morph);
 
     findContours(morph, contours, hierarchy, RetrievalModes::RETR_LIST, ContourApproximationModes::CHAIN_APPROX_SIMPLE);
 
@@ -180,7 +181,9 @@ void execute_calc(InputArray input, OutputArray output, const InRangeParams& par
         if(contourArea(contours[i]) < 400) continue;
         drawContours(image_with_contours, contours, i, Scalar(0, 0, 255));
     }
-    output.move(image_with_contours);
+    output1.move(hsv_filtered);
+    output2.move(morph);
+    output3.move(image_with_contours);
 }
 
 #define BUF_TO_WRITE (mat_buf[buf_index])
@@ -189,8 +192,8 @@ void execute_calc(InputArray input, OutputArray output, const InRangeParams& par
     buf_index = (buf_index + 1) % (sizeof(mat_buf) / sizeof(mat_buf[0]));\
 }while(0)\
 
-template<int DilateErodeTimes>
-void closing_opening(InputArray input, OutputArray output){
+template<unsigned char DilateErodeTimes>
+void closing(InputArray input, OutputArray output){
     
     CV_DbgAssert(input.isMat());
 
@@ -198,14 +201,38 @@ void closing_opening(InputArray input, OutputArray output){
     unsigned char buf_index = 0;
     Mat kernel = getStructuringElement(MorphShapes::MORPH_RECT, Size(3, 3));
 
-    CV_LOG_DEBUG(nullptr, cv::format("%s", "Start closing opening"));
-    CV_LOG_DEBUG(nullptr, (buf_index + sizeof(mat_buf) / sizeof(mat_buf[0]) - 1) % (sizeof(mat_buf) / sizeof(mat_buf[0])));
-
     //closing
     dilate(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
     SWTICH_BUF();
     erode(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
     SWTICH_BUF();
+
+    //opening
+    erode(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
+    SWTICH_BUF();
+    dilate(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
+    SWTICH_BUF();
+
+    output.move(BUF_TO_READ);
+}
+
+#undef BUF_TO_WRITE
+#undef BUF_TO_READ
+
+#define BUF_TO_WRITE (mat_buf[buf_index])
+#define BUF_TO_READ (mat_buf[(buf_index + sizeof(mat_buf) / sizeof(mat_buf[0]) - 1) % (sizeof(mat_buf) / sizeof(mat_buf[0]))])
+#define SWTICH_BUF() do{\
+    buf_index = (buf_index + 1) % (sizeof(mat_buf) / sizeof(mat_buf[0]));\
+}while(0)\
+
+template<unsigned char DilateErodeTimes>
+void opening(InputArray input, OutputArray output){
+    
+    CV_DbgAssert(input.isMat());
+
+    Mat mat_buf[2] = {Mat(), Mat(input.getMat())};
+    unsigned char buf_index = 0;
+    Mat kernel = getStructuringElement(MorphShapes::MORPH_RECT, Size(3, 3));
 
     //opening
     erode(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
