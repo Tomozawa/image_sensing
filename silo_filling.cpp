@@ -169,9 +169,31 @@ void execute_calc(InputArray input, OutputArray output1, OutputArray output2, Ou
     image.copyTo(image_with_contours);
 
     for(int i = 0; i < contours.size(); i++){
-        if(contourArea(contours[i]) < 400) continue;
-        drawContours(image_with_contours, contours, i, Scalar(0, 0, 255));
+        if(hierarchy.at(i)[3] >= 0) continue;
+
+        std::vector<Point> applox_contour, convex_contour;
+        approxPolyDP(contours[i], applox_contour, 0.02 * arcLength(contours[i], true), true);
+        convexHull(applox_contour, convex_contour);
+
+        const double area = contourArea(convex_contour);
+
+        if(area < 400) continue;
+        //if(convex_contour.size() != 4) continue;
+
+        const Moments moment = moments(convex_contour, true);
+
+        polylines(image_with_contours, convex_contour, true, Scalar{0, 0, 255});
+        putText(
+            image_with_contours,
+            cv::format("%d-gon", convex_contour.size()),
+            Point{static_cast<int>(moment.m10 / moment.m00), static_cast<int>(moment.m01 / moment.m00)},
+            HersheyFonts::FONT_HERSHEY_SIMPLEX,
+            1,
+            Scalar{0, 0, 255},
+            3
+        );
     }
+
     output1.move(hsv_filtered);
     output2.move(opened);
     output3.move(image_with_contours);
