@@ -148,21 +148,23 @@ int main(){
 }
 
 void execute_calc(InputArray input, OutputArray output1, OutputArray output2, OutputArray output3, const InRangeParams& params){
-    Mat image, hsv, blur, hsv_filtered, morph, canny_img, image_with_contours;
+    Mat image, hsv, blur, hsv_filtered, closed, opened, canny_img, image_with_contours;
     std::vector<std::vector<Point>> contours;
     std::vector<Vec4i> hierarchy;
     CV_DbgAssert(input.isMat());
     image = input.getMat();
 
     cvtColor(image, hsv, ColorConversionCodes::COLOR_BGR2HSV_FULL);
-    GaussianBlur(hsv, blur, Size(7, 7), 5, 5);
+    GaussianBlur(hsv, blur, Size(11, 11), 8.5, 8.5);
     Scalar lowerb(params.h_min, params.s_min, params.v_min), upperb(params.h_max, params.s_max, params.v_max);
     inRange(blur, lowerb, upperb, hsv_filtered);
-    
-    Canny(hsv_filtered, canny_img, 25, 75);
-    closing<1>(canny_img, morph);
 
-    findContours(morph, contours, hierarchy, RetrievalModes::RETR_LIST, ContourApproximationModes::CHAIN_APPROX_SIMPLE);
+    opening<5>(hsv_filtered, opened);
+    closing<5>(opened, closed);
+    
+    Canny(closed, canny_img, 25, 75);
+
+    findContours(opened, contours, hierarchy, RetrievalModes::RETR_LIST, ContourApproximationModes::CHAIN_APPROX_SIMPLE);
 
     image.copyTo(image_with_contours);
 
@@ -171,66 +173,36 @@ void execute_calc(InputArray input, OutputArray output1, OutputArray output2, Ou
         drawContours(image_with_contours, contours, i, Scalar(0, 0, 255));
     }
     output1.move(hsv_filtered);
-    output2.move(morph);
+    output2.move(opened);
     output3.move(image_with_contours);
 }
-
-#define BUF_TO_WRITE (mat_buf[buf_index])
-#define BUF_TO_READ (mat_buf[(buf_index + sizeof(mat_buf) / sizeof(mat_buf[0]) - 1) % (sizeof(mat_buf) / sizeof(mat_buf[0]))])
-#define SWTICH_BUF() do{\
-    buf_index = (buf_index + 1) % (sizeof(mat_buf) / sizeof(mat_buf[0]));\
-}while(0)\
 
 template<unsigned char DilateErodeTimes>
 void closing(InputArray input, OutputArray output){
     
     CV_DbgAssert(input.isMat());
 
-    Mat mat_buf[2] = {Mat(), Mat(input.getMat())};
-    unsigned char buf_index = 0;
-    Mat kernel = getStructuringElement(MorphShapes::MORPH_RECT, Size(3, 3));
+    Mat mat_buf[3] = {Mat(input.getMat()), Mat(), Mat()};
+    const Mat kernel = getStructuringElement(MorphShapes::MORPH_RECT, Size(3, 3));
 
     //closing
-    dilate(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
-    SWTICH_BUF();
-    erode(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
-    SWTICH_BUF();
+    dilate(mat_buf[0], mat_buf[1], kernel, Point(-1, -1), DilateErodeTimes);
+    erode(mat_buf[1], mat_buf[2], kernel, Point(-1, -1), DilateErodeTimes);
 
-    //opening
-    erode(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
-    SWTICH_BUF();
-    dilate(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
-    SWTICH_BUF();
-
-    output.move(BUF_TO_READ);
+    output.move(mat_buf[2]);
 }
-
-#undef BUF_TO_WRITE
-#undef BUF_TO_READ
-
-#define BUF_TO_WRITE (mat_buf[buf_index])
-#define BUF_TO_READ (mat_buf[(buf_index + sizeof(mat_buf) / sizeof(mat_buf[0]) - 1) % (sizeof(mat_buf) / sizeof(mat_buf[0]))])
-#define SWTICH_BUF() do{\
-    buf_index = (buf_index + 1) % (sizeof(mat_buf) / sizeof(mat_buf[0]));\
-}while(0)\
 
 template<unsigned char DilateErodeTimes>
 void opening(InputArray input, OutputArray output){
     
     CV_DbgAssert(input.isMat());
 
-    Mat mat_buf[2] = {Mat(), Mat(input.getMat())};
-    unsigned char buf_index = 0;
+    Mat mat_buf[3] = {Mat(input.getMat()), Mat(), Mat()};
     Mat kernel = getStructuringElement(MorphShapes::MORPH_RECT, Size(3, 3));
 
     //opening
-    erode(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
-    SWTICH_BUF();
-    dilate(BUF_TO_READ, BUF_TO_WRITE, kernel, Point(-1, -1), DilateErodeTimes);
-    SWTICH_BUF();
+    erode(mat_buf[0], mat_buf[1], kernel, Point(-1, -1), DilateErodeTimes);
+    dilate(mat_buf[1], mat_buf[2], kernel, Point(-1, -1), DilateErodeTimes);
 
-    output.move(BUF_TO_READ);
+    output.move(mat_buf[2]);
 }
-
-#undef BUF_TO_WRITE
-#undef BUF_TO_READ
