@@ -153,6 +153,30 @@ silo_filling.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/silo_filling.dir/build.make CMakeFiles/silo_filling.dir/silo_filling.cpp.s
 .PHONY : silo_filling.cpp.s
 
+utils.obj: utils.cpp.obj
+.PHONY : utils.obj
+
+# target to build an object file
+utils.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/silo_filling.dir/build.make CMakeFiles/silo_filling.dir/utils.cpp.obj
+.PHONY : utils.cpp.obj
+
+utils.i: utils.cpp.i
+.PHONY : utils.i
+
+# target to preprocess a source file
+utils.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/silo_filling.dir/build.make CMakeFiles/silo_filling.dir/utils.cpp.i
+.PHONY : utils.cpp.i
+
+utils.s: utils.cpp.s
+.PHONY : utils.s
+
+# target to generate assembly for a file
+utils.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/silo_filling.dir/build.make CMakeFiles/silo_filling.dir/utils.cpp.s
+.PHONY : utils.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -165,6 +189,9 @@ help:
 	@echo "... silo_filling.obj"
 	@echo "... silo_filling.i"
 	@echo "... silo_filling.s"
+	@echo "... utils.obj"
+	@echo "... utils.i"
+	@echo "... utils.s"
 .PHONY : help
 
 

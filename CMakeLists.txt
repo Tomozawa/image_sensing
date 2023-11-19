@@ -6,7 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(OpenCV REQUIRED)
 
-include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS} ./include)
 
-add_executable(silo_filling silo_filling.cpp)
+add_executable(
+    silo_filling
+    silo_filling.cpp
+    utils.cpp
+)
+
 target_link_libraries(silo_filling ${OpenCV_LIBRARIES})

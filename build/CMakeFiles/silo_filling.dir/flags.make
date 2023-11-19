@@ -4,7 +4,7 @@
 # compile CXX with C:/msys64/mingw64/bin/c++.exe
 CXX_DEFINES = 
 
-CXX_INCLUDES = -isystem /C/msys64/mingw64/include/opencv4
+CXX_INCLUDES = -I/C/Users/yudun/Programming/C++/image_sensing/./include -isystem /C/msys64/mingw64/include/opencv4
 
 CXX_FLAGS = -std=gnu++20
 

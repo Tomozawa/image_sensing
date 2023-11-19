@@ -83,14 +83,30 @@ CMakeFiles/silo_filling.dir/silo_filling.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/silo_filling.dir/silo_filling.cpp.s"
 	/C/msys64/mingw64/bin/c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /C/Users/yudun/Programming/C++/image_sensing/silo_filling.cpp -o CMakeFiles/silo_filling.dir/silo_filling.cpp.s
 
+CMakeFiles/silo_filling.dir/utils.cpp.obj: CMakeFiles/silo_filling.dir/flags.make
+CMakeFiles/silo_filling.dir/utils.cpp.obj: C:/Users/yudun/Programming/C++/image_sensing/utils.cpp
+CMakeFiles/silo_filling.dir/utils.cpp.obj: CMakeFiles/silo_filling.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/C/Users/yudun/Programming/C++/image_sensing/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/silo_filling.dir/utils.cpp.obj"
+	/C/msys64/mingw64/bin/c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/silo_filling.dir/utils.cpp.obj -MF CMakeFiles/silo_filling.dir/utils.cpp.obj.d -o CMakeFiles/silo_filling.dir/utils.cpp.obj -c /C/Users/yudun/Programming/C++/image_sensing/utils.cpp
+
+CMakeFiles/silo_filling.dir/utils.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/silo_filling.dir/utils.cpp.i"
+	/C/msys64/mingw64/bin/c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /C/Users/yudun/Programming/C++/image_sensing/utils.cpp > CMakeFiles/silo_filling.dir/utils.cpp.i
+
+CMakeFiles/silo_filling.dir/utils.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/silo_filling.dir/utils.cpp.s"
+	/C/msys64/mingw64/bin/c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /C/Users/yudun/Programming/C++/image_sensing/utils.cpp -o CMakeFiles/silo_filling.dir/utils.cpp.s
+
 # Object files for target silo_filling
 silo_filling_OBJECTS = \
-"CMakeFiles/silo_filling.dir/silo_filling.cpp.obj"
+"CMakeFiles/silo_filling.dir/silo_filling.cpp.obj" \
+"CMakeFiles/silo_filling.dir/utils.cpp.obj"
 
 # External object files for target silo_filling
 silo_filling_EXTERNAL_OBJECTS =
 
 silo_filling.exe: CMakeFiles/silo_filling.dir/silo_filling.cpp.obj
+silo_filling.exe: CMakeFiles/silo_filling.dir/utils.cpp.obj
 silo_filling.exe: CMakeFiles/silo_filling.dir/build.make
 silo_filling.exe: C:/msys64/mingw64/lib/libopencv_gapi.dll.a
 silo_filling.exe: C:/msys64/mingw64/lib/libopencv_stitching.dll.a
@@ -149,7 +165,7 @@ silo_filling.exe: C:/msys64/mingw64/lib/libopencv_flann.dll.a
 silo_filling.exe: C:/msys64/mingw64/lib/libopencv_photo.dll.a
 silo_filling.exe: C:/msys64/mingw64/lib/libopencv_imgproc.dll.a
 silo_filling.exe: C:/msys64/mingw64/lib/libopencv_core.dll.a
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/C/Users/yudun/Programming/C++/image_sensing/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable silo_filling.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/C/Users/yudun/Programming/C++/image_sensing/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable silo_filling.exe"
 	/C/msys64/mingw64/bin/cmake.exe -E rm -f CMakeFiles/silo_filling.dir/objects.a
 	/C/msys64/mingw64/bin/ar.exe qc CMakeFiles/silo_filling.dir/objects.a $(silo_filling_OBJECTS) $(silo_filling_EXTERNAL_OBJECTS)
 	/C/msys64/mingw64/bin/c++.exe -Wl,--whole-archive CMakeFiles/silo_filling.dir/objects.a -Wl,--no-whole-archive -o silo_filling.exe -Wl,--out-implib,libsilo_filling.dll.a -Wl,--major-image-version,0,--minor-image-version,0  /C/msys64/mingw64/lib/libopencv_gapi.dll.a /C/msys64/mingw64/lib/libopencv_stitching.dll.a /C/msys64/mingw64/lib/libopencv_alphamat.dll.a /C/msys64/mingw64/lib/libopencv_aruco.dll.a /C/msys64/mingw64/lib/libopencv_bgsegm.dll.a /C/msys64/mingw64/lib/libopencv_ccalib.dll.a /C/msys64/mingw64/lib/libopencv_cvv.dll.a /C/msys64/mingw64/lib/libopencv_dnn_objdetect.dll.a /C/msys64/mingw64/lib/libopencv_dnn_superres.dll.a /C/msys64/mingw64/lib/libopencv_dpm.dll.a /C/msys64/mingw64/lib/libopencv_face.dll.a /C/msys64/mingw64/lib/libopencv_freetype.dll.a /C/msys64/mingw64/lib/libopencv_fuzzy.dll.a /C/msys64/mingw64/lib/libopencv_hdf.dll.a /C/msys64/mingw64/lib/libopencv_hfs.dll.a /C/msys64/mingw64/lib/libopencv_img_hash.dll.a /C/msys64/mingw64/lib/libopencv_intensity_transform.dll.a /C/msys64/mingw64/lib/libopencv_line_descriptor.dll.a /C/msys64/mingw64/lib/libopencv_mcc.dll.a /C/msys64/mingw64/lib/libopencv_ovis.dll.a /C/msys64/mingw64/lib/libopencv_quality.dll.a /C/msys64/mingw64/lib/libopencv_rapid.dll.a /C/msys64/mingw64/lib/libopencv_reg.dll.a /C/msys64/mingw64/lib/libopencv_rgbd.dll.a /C/msys64/mingw64/lib/libopencv_saliency.dll.a /C/msys64/mingw64/lib/libopencv_sfm.dll.a /C/msys64/mingw64/lib/libopencv_stereo.dll.a /C/msys64/mingw64/lib/libopencv_structured_light.dll.a /C/msys64/mingw64/lib/libopencv_superres.dll.a /C/msys64/mingw64/lib/libopencv_surface_matching.dll.a /C/msys64/mingw64/lib/libopencv_tracking.dll.a /C/msys64/mingw64/lib/libopencv_videostab.dll.a /C/msys64/mingw64/lib/libopencv_viz.dll.a /C/msys64/mingw64/lib/libopencv_wechat_qrcode.dll.a /C/msys64/mingw64/lib/libopencv_xfeatures2d.dll.a /C/msys64/mingw64/lib/libopencv_xobjdetect.dll.a /C/msys64/mingw64/lib/libopencv_xphoto.dll.a /C/msys64/mingw64/lib/libopencv_shape.dll.a /C/msys64/mingw64/lib/libopencv_highgui.dll.a /C/msys64/mingw64/lib/libopencv_datasets.dll.a /C/msys64/mingw64/lib/libopencv_plot.dll.a /C/msys64/mingw64/lib/libopencv_text.dll.a /C/msys64/mingw64/lib/libopencv_ml.dll.a /C/msys64/mingw64/lib/libopencv_phase_unwrapping.dll.a /C/msys64/mingw64/lib/libopencv_optflow.dll.a /C/msys64/mingw64/lib/libopencv_ximgproc.dll.a /C/msys64/mingw64/lib/libopencv_video.dll.a /C/msys64/mingw64/lib/libopencv_videoio.dll.a /C/msys64/mingw64/lib/libopencv_imgcodecs.dll.a /C/msys64/mingw64/lib/libopencv_objdetect.dll.a /C/msys64/mingw64/lib/libopencv_calib3d.dll.a /C/msys64/mingw64/lib/libopencv_dnn.dll.a /C/msys64/mingw64/lib/libopencv_features2d.dll.a /C/msys64/mingw64/lib/libopencv_flann.dll.a /C/msys64/mingw64/lib/libopencv_photo.dll.a /C/msys64/mingw64/lib/libopencv_imgproc.dll.a /C/msys64/mingw64/lib/libopencv_core.dll.a -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 
