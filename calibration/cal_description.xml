@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<calibration>
+    <img src="calibration.jpg">
+        <grid len="10cm">
+            <row>5</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+</calibration>
