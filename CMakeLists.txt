@@ -9,9 +9,9 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS} ./include)
 
 add_executable(
-    silo_filling
-    silo_filling.cpp
+    ball_detecter
+    ball_detecter.cpp
     utils.cpp
 )
 
-target_link_libraries(silo_filling ${OpenCV_LIBRARIES})
+target_link_libraries(ball_detecter ${OpenCV_LIBRARIES})

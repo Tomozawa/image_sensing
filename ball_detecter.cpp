@@ -172,7 +172,7 @@ void execute_calc(InputArray input, OutputArray output1, OutputArray output2, Ou
         if(hierarchy.at(i)[3] >= 0) continue;
 
         std::vector<Point> applox_contour, convex_contour;
-        approxPolyDP(contours[i], applox_contour, 0.01 * arcLength(contours[i], true), true);
+        approxPolyDP(contours[i], applox_contour, 0.005 * arcLength(contours[i], true), true);
         convexHull(applox_contour, convex_contour);
 
         const double area = contourArea(convex_contour);

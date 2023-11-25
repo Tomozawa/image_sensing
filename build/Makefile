@@ -117,48 +117,48 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named silo_filling
+# Target rules for targets named ball_detecter
 
 # Build rule for target.
-silo_filling: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 silo_filling
-.PHONY : silo_filling
+ball_detecter: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ball_detecter
+.PHONY : ball_detecter
 
 # fast build rule for target.
-silo_filling/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/silo_filling.dir/build.make CMakeFiles/silo_filling.dir/build
-.PHONY : silo_filling/fast
+ball_detecter/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ball_detecter.dir/build.make CMakeFiles/ball_detecter.dir/build
+.PHONY : ball_detecter/fast
 
-silo_filling.obj: silo_filling.cpp.obj
-.PHONY : silo_filling.obj
+ball_detecter.obj: ball_detecter.cpp.obj
+.PHONY : ball_detecter.obj
 
 # target to build an object file
-silo_filling.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/silo_filling.dir/build.make CMakeFiles/silo_filling.dir/silo_filling.cpp.obj
-.PHONY : silo_filling.cpp.obj
+ball_detecter.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ball_detecter.dir/build.make CMakeFiles/ball_detecter.dir/ball_detecter.cpp.obj
+.PHONY : ball_detecter.cpp.obj
 
-silo_filling.i: silo_filling.cpp.i
-.PHONY : silo_filling.i
+ball_detecter.i: ball_detecter.cpp.i
+.PHONY : ball_detecter.i
 
 # target to preprocess a source file
-silo_filling.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/silo_filling.dir/build.make CMakeFiles/silo_filling.dir/silo_filling.cpp.i
-.PHONY : silo_filling.cpp.i
+ball_detecter.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ball_detecter.dir/build.make CMakeFiles/ball_detecter.dir/ball_detecter.cpp.i
+.PHONY : ball_detecter.cpp.i
 
-silo_filling.s: silo_filling.cpp.s
-.PHONY : silo_filling.s
+ball_detecter.s: ball_detecter.cpp.s
+.PHONY : ball_detecter.s
 
 # target to generate assembly for a file
-silo_filling.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/silo_filling.dir/build.make CMakeFiles/silo_filling.dir/silo_filling.cpp.s
-.PHONY : silo_filling.cpp.s
+ball_detecter.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ball_detecter.dir/build.make CMakeFiles/ball_detecter.dir/ball_detecter.cpp.s
+.PHONY : ball_detecter.cpp.s
 
 utils.obj: utils.cpp.obj
 .PHONY : utils.obj
 
 # target to build an object file
 utils.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/silo_filling.dir/build.make CMakeFiles/silo_filling.dir/utils.cpp.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ball_detecter.dir/build.make CMakeFiles/ball_detecter.dir/utils.cpp.obj
 .PHONY : utils.cpp.obj
 
 utils.i: utils.cpp.i
@@ -166,7 +166,7 @@ utils.i: utils.cpp.i
 
 # target to preprocess a source file
 utils.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/silo_filling.dir/build.make CMakeFiles/silo_filling.dir/utils.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ball_detecter.dir/build.make CMakeFiles/ball_detecter.dir/utils.cpp.i
 .PHONY : utils.cpp.i
 
 utils.s: utils.cpp.s
@@ -174,7 +174,7 @@ utils.s: utils.cpp.s
 
 # target to generate assembly for a file
 utils.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/silo_filling.dir/build.make CMakeFiles/silo_filling.dir/utils.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ball_detecter.dir/build.make CMakeFiles/ball_detecter.dir/utils.cpp.s
 .PHONY : utils.cpp.s
 
 # Help Target
@@ -185,10 +185,10 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... silo_filling"
-	@echo "... silo_filling.obj"
-	@echo "... silo_filling.i"
-	@echo "... silo_filling.s"
+	@echo "... ball_detecter"
+	@echo "... ball_detecter.obj"
+	@echo "... ball_detecter.i"
+	@echo "... ball_detecter.s"
 	@echo "... utils.obj"
 	@echo "... utils.i"
 	@echo "... utils.s"

@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <calibration>
+    <camera>
+        <focal>3</focal>
+    </camera>
     <img src="calibration.jpg">
-        <grid len="10cm">
+        <grid len="100cm">
             <row>5</row>
             <col>7</col>
         </grid>
