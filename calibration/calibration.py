@@ -70,8 +70,11 @@ def main():
 # following tags are used to describe cakibration file
 #
 # <calibration> - the root tag
-# <camera> - represents camera. It must contain <focal>
+# <camera> - represents camera. It must contain <focal> and <sensor>
 # <focal> - describe focal distance. The unit is mm. (decimal value is supported.)
+# <sensor> - describe image sensor spec. It must contain <width> and <height>
+# <width> - width of image sensor. The unit is mm. (decimal value is supported)
+# <height> - height of image sensor. The unit is mm. (decimal value is suported)
 # <img src="path_to_img"> - represents image file to be used for calibration. It must contains all the following tags
 # <grid len="area length of grid"> - how many control points to find. m, cm, and mm are supportd as the unit of length(default unit is mm)
 # <row> - num of vertical control points, included by <ctrlpts>
@@ -158,59 +161,13 @@ def main():
         raise ImageProcessingException('failed to calibration')
 
     focal_dist = None
+    sensor_dim = []
     camera_elem = root.find('camera')
     if camera_elem != None:
-        print('<camera> tag is found.')
-        try:
-            focal_dist = float(camera_elem.find('focal').text)
-        except ValueError as e:
-            print(f'invalied focal: {e}')
-            exit()
+        focal_dist = float(camera_elem.find('focal').text)
+        sensor_dim = [float(camera_elem.find('sensor/width').text), float(camera_elem.find('sensor/height').text)]
     else:
         raise DescripterException('<camera> is not found')
-    
-    inverted_mtx = np.linalg.inv(mtx)
-    (rotation_matrix, _) = cv2.Rodrigues(np.ravel(rvecs))
-    print(tvecs)
-    camera_base_vec = np.array([
-        [rotation_matrix[0][0], rotation_matrix[0][1], rotation_matrix[0][2], tvecs[0][0][0]],
-        [rotation_matrix[1][0], rotation_matrix[1][1], rotation_matrix[1][2], tvecs[0][1][0]],
-        [rotation_matrix[2][0], rotation_matrix[2][1], rotation_matrix[2][2], tvecs[0][2][0]],
-        [0, 0, 0, 1]
-    ])
-    sum_times = 0
-    px_mm_ratio_sum = 0
-    for (obj_view, img_view) in zip(corners['object_points'], corners['image_points']):
-        for (obj_point, img_point) in zip(obj_view, img_view):
-            cam_obj_point = \
-            camera_base_vec \
-            @ np.array([
-                obj_point[0],
-                obj_point[1],
-                obj_point[2],
-                1
-            ])
-
-            project_point = \
-            inverted_mtx \
-            @ np.array([
-                img_point[0],
-                img_point[1],
-                1
-            ])
-
-            obj_height_mm = np.sqrt(cam_obj_point[0] ** 2 + cam_obj_point[1] ** 2)
-            project_height_mm = obj_height_mm * (focal_dist / cam_obj_point[2])
-            if obj_height_mm < 10:
-                continue
-
-            project_height_px = np.sqrt(project_point[0] ** 2 + project_point[1] ** 2)
-
-            px_mm_ratio_sum = px_mm_ratio_sum + (project_height_px / project_height_mm)
-            sum_times = sum_times + 1
-
-        px_mm_ratio = px_mm_ratio_sum / sum_times
-        
     
     timestamp = datetime.datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d%H%M%S')
 
@@ -220,8 +177,8 @@ def main():
         json.dump({
             'matrix': mtx.tolist(),
             'distortion': dist.tolist(),
-            'px_mm_ratio': px_mm_ratio,
-            'focal_distance': focal_dist
+            'focal_distance': focal_dist,
+            'sensor_dimension': sensor_dim
         }, file)
 
     print(f'caribration file is saved to {file_name}')

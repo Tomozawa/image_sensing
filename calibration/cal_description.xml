@@ -2,6 +2,10 @@
 <calibration>
     <camera>
         <focal>3</focal>
+        <sensor>
+            <width>3</width>
+            <height>3</height>
+        </sensor>
     </camera>
     <img src="calibration.jpg">
         <grid len="100cm">
