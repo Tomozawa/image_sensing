@@ -2,6 +2,7 @@
 
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
+#include <camera_matrix.hpp>
 
 namespace sensing_utils{
     template<unsigned char DilateErodeTimes>
@@ -35,4 +36,6 @@ namespace sensing_utils{
     }
 
     void hsv_range(cv::InputArray, const cv::Vec<uint8_t, 256>&, int, int, int, int, cv::OutputArray);
+
+    void get_perspective_point(const cv::Point2d, cv::Point2d&, const CameraMatrix);
 } //sensing_utils

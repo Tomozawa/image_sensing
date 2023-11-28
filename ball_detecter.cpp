@@ -2,17 +2,41 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/core/utils/logger.hpp>
+#include <opencv2/calib3d.hpp>
 #include <vector>
+#include <fstream>
+#include <exception>
+#include <string>
+#include <vector>
+#include <PositionEstimateEngine.hpp>
 #include <InRangeParams.hpp>
 #include <HueLookupTable.hpp>
 #include <utils.hpp>
+#include <nlohmann/json.hpp>
 
 using namespace cv;
 using namespace in_range_params;
 using namespace sensing_utils;
 using namespace hue_lut;
+using namespace position_estimate_engine;
+using namespace nlohmann;
 
-void execute_calc(InputArray, OutputArray, OutputArray, OutputArray, const InRangeParams&);
+struct CameraCalibration{
+    CameraMatrix camera_matrix;
+    Vec<double, 5> distorsion;
+    double focal_distance;
+    Size2d sensor_dimension;
+    Size image_size;
+};
+
+struct CameraScaling{
+    double distance;
+    double area;
+};
+
+void execute_calc(InputArray, OutputArray, OutputArray, OutputArray, const InRangeParams&, const PositionEstimateEngine<EngineType::MONO_CAM>&);
+CameraCalibration load_calibration_file(void);
+CameraScaling load_scaling_file(void);
 
 //グローバル変数を包む構造体
 //グローバル変数が必要なのでやむなし
@@ -69,6 +93,33 @@ GlobalVariables global_variables;
 
 int main(){
     utils::logging::setLogLevel(utils::logging::LogLevel::LOG_LEVEL_DEBUG);
+    CameraCalibration calibration;
+    CameraScaling scaling;
+
+    try{
+        calibration = load_calibration_file();
+        scaling = load_scaling_file();
+    }catch(std::runtime_error& e){
+        CV_LOG_ERROR(nullptr, e.what());
+        std::exit(-1);
+    }catch(json::exception& e){
+        CV_LOG_ERROR(nullptr, e.what());
+        std::exit(-1);
+    }
+
+    constexpr ScalingFactor scaling_factor = {};
+    const PositionEstimateEngine<EngineType::MONO_CAM> engine(
+        PointingFactor{
+            .focal_distance = calibration.focal_distance,
+            .sensor_dimension = calibration.sensor_dimension,
+            .image_size = calibration.image_size
+        },
+        ScalingFactor{
+            .area = scaling.area,
+            .distance = scaling.distance
+        },
+        calibration.camera_matrix
+    );
 
     const String window_name = "Canny";
     namedWindow(window_name);
@@ -131,10 +182,12 @@ int main(){
 
     do{
         global_variables.grabs();
-        Mat input_img, output1_img, output2_img, output3_img;
+        Mat input_img, undistort_img, output1_img, output2_img, output3_img;
         global_variables.retrieve(input_img);
 
-        execute_calc(input_img, output1_img, output2_img, output3_img, global_variables.replace_param());
+        undistort(input_img, undistort_img, calibration.camera_matrix, calibration.distorsion);
+
+        execute_calc(undistort_img, output1_img, output2_img, output3_img, global_variables.replace_param(), engine);
 
         imshow("output1", output1_img);
         imshow("output2", output2_img);
@@ -146,7 +199,7 @@ int main(){
     return 0;
 }
 
-void execute_calc(InputArray input, OutputArray output1, OutputArray output2, OutputArray output3, const InRangeParams& params){
+void execute_calc(InputArray input, OutputArray output1, OutputArray output2, OutputArray output3, const InRangeParams& params, const PositionEstimateEngine<EngineType::MONO_CAM>& engine){
     Mat image, hsv, blur, hsv_filtered, closed, opened, canny_img, image_with_contours;
     std::vector<std::vector<Point>> contours;
     std::vector<Vec4i> hierarchy;
@@ -159,8 +212,8 @@ void execute_calc(InputArray input, OutputArray output1, OutputArray output2, Ou
     //普通のinRangeだと赤色が検知できない
     hsv_range(blur, global_variables.get_hue_lut(), params.s_min, params.s_max, params.v_min, params.v_max, hsv_filtered);
 
-    opening<1>(hsv_filtered, opened);
-    closing<1>(opened, closed);
+    opening<2>(hsv_filtered, opened);
+    closing<2>(opened, closed);
     
     Canny(closed, canny_img, 25, 75);
 
@@ -178,14 +231,28 @@ void execute_calc(InputArray input, OutputArray output1, OutputArray output2, Ou
         const double area = contourArea(convex_contour);
 
         if(area < 400) continue;
-        //if(convex_contour.size() < 10) continue;
+        if(convex_contour.size() < 10) continue;
 
         const Moments moment = moments(convex_contour, true);
+
+        // polylines(image_with_contours, convex_contour, true, Scalar{0, 0, 255});
+        // putText(
+        //     image_with_contours,
+        //     cv::format("%d-gon", convex_contour.size()),
+        //     Point{static_cast<int>(moment.m10 / moment.m00), static_cast<int>(moment.m01 / moment.m00)},
+        //     HersheyFonts::FONT_HERSHEY_SIMPLEX,
+        //     1,
+        //     Scalar{0, 0, 255},
+        //     3
+        // );
+
+        const Point2d image_point(moment.m10 / moment.m00, moment.m01 / moment.m00);
+        const cv::Point3d position = engine.estimate_position(image_point, area);
 
         polylines(image_with_contours, convex_contour, true, Scalar{0, 0, 255});
         putText(
             image_with_contours,
-            cv::format("%d-gon", convex_contour.size()),
+            cv::format("(%d, %d, %d)", static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(position.z)),
             Point{static_cast<int>(moment.m10 / moment.m00), static_cast<int>(moment.m01 / moment.m00)},
             HersheyFonts::FONT_HERSHEY_SIMPLEX,
             1,
@@ -197,4 +264,59 @@ void execute_calc(InputArray input, OutputArray output1, OutputArray output2, Ou
     output1.move(hsv_filtered);
     output2.move(opened);
     output3.move(image_with_contours);
+}
+
+CameraCalibration load_calibration_file(){
+    CameraCalibration result;
+
+    std::ifstream ifs("camera_calibration.json");
+    json calibration_json;
+    if(!ifs.is_open()) throw std::runtime_error("Can't open camera_calibration.json");
+
+    ifs >> calibration_json;
+
+    ifs.close();
+
+    const json& matrix_ref = calibration_json.at("matrix");
+    result.camera_matrix = {
+        matrix_ref.at(0).at(0), matrix_ref.at(0).at(1), matrix_ref.at(0).at(2),
+        matrix_ref.at(1).at(0), matrix_ref.at(1).at(1), matrix_ref.at(1).at(2),
+        matrix_ref.at(2).at(0), matrix_ref.at(2).at(1), matrix_ref.at(2).at(2)
+    };
+
+    const json& distortion_ref = calibration_json.at("distortion");
+    result.distorsion = {
+        distortion_ref.at(0).at(0),
+        distortion_ref.at(0).at(1),
+        distortion_ref.at(0).at(2),
+        distortion_ref.at(0).at(3),
+        distortion_ref.at(0).at(4)
+    };
+
+    result.focal_distance = calibration_json.at("focal_distance");
+
+    const json& sensor_dimension_ref = calibration_json.at("sensor_dimension");
+    result.sensor_dimension = Size2d(sensor_dimension_ref.at(0), sensor_dimension_ref.at(1));
+
+    const json& image_size_ref = calibration_json.at("image_size");
+    result.image_size = Size(image_size_ref.at(0), image_size_ref.at(1));
+
+    return result;
+}
+
+CameraScaling load_scaling_file(){
+    CameraScaling result;
+
+    std::ifstream ifs("camera_scaling.json");
+    json scaling_json;
+    if(!ifs.is_open()) throw std::runtime_error("Can't open camera_scaling.json");
+
+    ifs >> scaling_json;
+
+    ifs.close();
+
+    result.area = scaling_json.at("area");
+    result.distance = scaling_json.at("distance");
+
+    return result;
 }

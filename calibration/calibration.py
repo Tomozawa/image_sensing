@@ -67,7 +67,7 @@ def main():
 ###### calibration file descripter format ######
 # calibration file descripter is written in xml
 # xml file must be named as "cal_description.xml"
-# following tags are used to describe cakibration file
+# following tags are used to describe calibration file
 #
 # <calibration> - the root tag
 # <camera> - represents camera. It must contain <focal> and <sensor>
@@ -89,6 +89,10 @@ def main():
 # <calibration>
 #   <camera>
 #       <focal>3mm<focal>
+#       <sensor>
+#           <width>3</width>
+#           <height>3</height>
+#       </sensor>
 #   </camera>
 #   <img src="./calibration.png">
 #       <grid len="5cm">
@@ -104,12 +108,12 @@ def main():
 # </calibration>
     print('loading descripiton file...')
 
-    row_string = ''
+    raw_string = ''
 
     with open('cal_description.xml', 'r', encoding='utf-8') as file:
-        row_string = file.read()
+        raw_string = file.read()
     
-    root = ET.fromstring(row_string)
+    root = ET.fromstring(raw_string)
 
     if root.tag != 'calibration':
         raise DescripterException('invalied root tag name')
@@ -127,7 +131,7 @@ def main():
         grid_len_str = img.find('grid').attrib['len']
         match_list = re.findall('^([1-9][0-9]*)(m|cm|mm)?$', grid_len_str)
         if match_list == None or (len(match_list[0]) != 1 and len(match_list[0]) != 2):
-            raise DescripterException(f'invalied len values: ${match_list}')
+            raise DescripterException(f'invalied len values: {match_list}')
         grid_len = int(match_list[0][0])
         if len(match_list[0]) == 2:
             grid_len *= (not match_list[0][1] == 'm') if ((not match_list[0][1] == 'cm') if 1 else 10) else 1000
@@ -155,7 +159,7 @@ def main():
         if len(image_points_in_view) < 15:
             raise ImageProcessingException(f'there are too few control points: {len(corners["image_points"])}')
 
-    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(corners['object_points'], corners['image_points'], img_size, None, None)
+    ret, mtx, dist, _, _ = cv2.calibrateCamera(corners['object_points'], corners['image_points'], img_size, None, None)
 
     if not ret:
         raise ImageProcessingException('failed to calibration')
@@ -178,7 +182,8 @@ def main():
             'matrix': mtx.tolist(),
             'distortion': dist.tolist(),
             'focal_distance': focal_dist,
-            'sensor_dimension': sensor_dim
+            'sensor_dimension': sensor_dim,
+            'image_size': img_size
         }, file)
 
     print(f'caribration file is saved to {file_name}')

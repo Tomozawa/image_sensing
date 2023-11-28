@@ -18,4 +18,12 @@ namespace sensing_utils{
         Mat sv;
         bitwise_and(binaried_hsv[1], binaried_hsv[2], output, binaried_hsv[0]);
     }
+
+    void get_perspective_point(const cv::Point2d image_point, cv::Point2d& perspective_point, const CameraMatrix camera_matrix){
+        const cv::Vec3d image_point_vec(image_point.x, image_point.y, 1);
+        const cv::Vec3d perspective_point_vec = camera_matrix.inv() * image_point_vec;
+
+        perspective_point.x = perspective_point_vec[0];
+        perspective_point.y = perspective_point_vec[1];
+    }
 } //utils
