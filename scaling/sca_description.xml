@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <scaling>
-    <img src="IMG_2654.jpg">
-        <distance>30cm</distance>
+    <img src="scaling_1m.jpg">
+        <distance>1m</distance>
+    </img>
+    <img src="scaling_1_5m.jpg">
+        <distance>150cm</distance>
+    </img>
+    <img src="scaling_2m.jpg">
+        <distance>2m</distance>
     </img>
 </scaling>

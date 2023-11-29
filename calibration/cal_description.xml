@@ -1,15 +1,114 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <calibration>
     <camera>
-        <focal>3</focal>
+        <focal>3.42</focal>
         <sensor>
-            <width>3</width>
-            <height>3</height>
+            <width>2.9</width>
+            <height>2.2</height>
         </sensor>
     </camera>
-    <img src="calibration.jpg">
-        <grid len="100cm">
-            <row>5</row>
+    <img src="calibration (1).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (2).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (3).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (4).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (5).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (6).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (7).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (8).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (9).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (10).jpg">
+        <grid len="14mm">
+            <row>11</row>
             <col>7</col>
         </grid>
         <posture>

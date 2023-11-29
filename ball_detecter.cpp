@@ -75,7 +75,7 @@ struct GlobalVariables{
         /*video_capture_*/
         //Todo: 複数カメラ対応
         inline bool open_cameras(void){
-            video_capture_.open(0);
+            video_capture_.open(1);
             return video_capture_.isOpened();
         }
         //Todo: 複数カメラ対応(1つのメソッドで全部grab)
@@ -109,11 +109,6 @@ int main(){
 
     constexpr ScalingFactor scaling_factor = {};
     const PositionEstimateEngine<EngineType::MONO_CAM> engine(
-        PointingFactor{
-            .focal_distance = calibration.focal_distance,
-            .sensor_dimension = calibration.sensor_dimension,
-            .image_size = calibration.image_size
-        },
         ScalingFactor{
             .area = scaling.area,
             .distance = scaling.distance
@@ -185,9 +180,9 @@ int main(){
         Mat input_img, undistort_img, output1_img, output2_img, output3_img;
         global_variables.retrieve(input_img);
 
-        undistort(input_img, undistort_img, calibration.camera_matrix, calibration.distorsion);
+        //undistort(input_img, undistort_img, calibration.camera_matrix, calibration.distorsion);
 
-        execute_calc(undistort_img, output1_img, output2_img, output3_img, global_variables.replace_param(), engine);
+        execute_calc(/*undistort_img*/input_img, output1_img, output2_img, output3_img, global_variables.replace_param(), engine);
 
         imshow("output1", output1_img);
         imshow("output2", output2_img);
@@ -247,6 +242,7 @@ void execute_calc(InputArray input, OutputArray output1, OutputArray output2, Ou
         // );
 
         const Point2d image_point(moment.m10 / moment.m00, moment.m01 / moment.m00);
+
         const cv::Point3d position = engine.estimate_position(image_point, area);
 
         polylines(image_with_contours, convex_contour, true, Scalar{0, 0, 255});

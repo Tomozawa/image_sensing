@@ -123,6 +123,12 @@ def main():
         'image_points': []
     }
 
+    focal_length = float(root.find('camera/focal').text)
+    sensor_dimension = [
+        float(root.find('camera/sensor/width').text),
+        float(root.find('camera/sensor/height').text)
+    ]
+
     img_size = None
 
     for img in root.findall('img'):
@@ -134,7 +140,7 @@ def main():
             raise DescripterException(f'invalied len values: {match_list}')
         grid_len = int(match_list[0][0])
         if len(match_list[0]) == 2:
-            grid_len *= (not match_list[0][1] == 'm') if ((not match_list[0][1] == 'cm') if 1 else 10) else 1000
+            grid_len *= 1000 if match_list[0][1] == 'm' else (10 if match_list[0][1] == 'cm' else 1)
         
         row = int(img.find('grid/row').text)
         
@@ -159,19 +165,25 @@ def main():
         if len(image_points_in_view) < 15:
             raise ImageProcessingException(f'there are too few control points: {len(corners["image_points"])}')
 
-    ret, mtx, dist, _, _ = cv2.calibrateCamera(corners['object_points'], corners['image_points'], img_size, None, None)
+    initial_camera_matrix = np.array([
+        [img_size[0] * focal_length / sensor_dimension[0], 0, img_size[0] / 2],
+        [0, img_size[1] * focal_length / sensor_dimension[1], img_size[1] / 2],
+        [0, 0, 1]
+    ])
+
+    ret, mtx, dist, _, _ = cv2.calibrateCamera(
+        corners['object_points'],
+        corners['image_points'],
+        img_size,
+        initial_camera_matrix,
+        np.array([0, 0, 0, 0, 0]),
+        flags=cv2.CALIB_USE_INTRINSIC_GUESS
+    )
+
+    print(ret)
 
     if not ret:
         raise ImageProcessingException('failed to calibration')
-
-    focal_dist = None
-    sensor_dim = []
-    camera_elem = root.find('camera')
-    if camera_elem != None:
-        focal_dist = float(camera_elem.find('focal').text)
-        sensor_dim = [float(camera_elem.find('sensor/width').text), float(camera_elem.find('sensor/height').text)]
-    else:
-        raise DescripterException('<camera> is not found')
     
     timestamp = datetime.datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d%H%M%S')
 
@@ -180,10 +192,7 @@ def main():
     with open(file_name, 'w', encoding='utf-8') as file:
         json.dump({
             'matrix': mtx.tolist(),
-            'distortion': dist.tolist(),
-            'focal_distance': focal_dist,
-            'sensor_dimension': sensor_dim,
-            'image_size': img_size
+            'distortion': dist.tolist()
         }, file)
 
     print(f'caribration file is saved to {file_name}')
