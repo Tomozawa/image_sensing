@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<calibration type="stereo">
+    <camera side="left">
+        <focal>3.42</focal>
+        <sensor>
+            <width>2.9</width>
+            <height>2.2</height>
+        </sensor>
+    </camera>
+    <camera side="right">
+        <focal>3.42</focal>
+        <sensor>
+            <width>2.9</width>
+            <height>2.2</height>
+        </sensor>
+    </camera>
+    <img lsrc="lcalibration.jpg" rsrc="rcalibration.jpg">
+        <grid len="14mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+</calibration>
