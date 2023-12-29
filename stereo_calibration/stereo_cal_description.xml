@@ -1,21 +1,142 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <calibration type="stereo">
     <camera side="left">
-        <focal>3.42</focal>
+        <focal>4.15417</focal>
         <sensor>
-            <width>2.9</width>
-            <height>2.2</height>
+            <width>6.229655</width>
+            <height>2.075434</height>
         </sensor>
     </camera>
     <camera side="right">
-        <focal>3.42</focal>
+        <focal>4.15417</focal>
         <sensor>
-            <width>2.9</width>
-            <height>2.2</height>
+            <width>6.229655</width>
+            <height>2.075434</height>
         </sensor>
     </camera>
-    <img lsrc="lcalibration.jpg" rsrc="rcalibration.jpg">
-        <grid len="14mm">
+    <img lsrc="lcalibration (1).jpg" rsrc="rcalibration (1).jpg">
+        <grid len="16mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img lsrc="lcalibration (2).jpg" rsrc="rcalibration (2).jpg">
+        <grid len="16mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img lsrc="lcalibration (3).jpg" rsrc="rcalibration (3).jpg">
+        <grid len="16mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img lsrc="lcalibration (3).jpg" rsrc="rcalibration (3).jpg">
+        <grid len="16mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img lsrc="lcalibration (4).jpg" rsrc="rcalibration (4).jpg">
+        <grid len="16mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img lsrc="lcalibration (5).jpg" rsrc="rcalibration (5).jpg">
+        <grid len="16mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img lsrc="lcalibration (6).jpg" rsrc="rcalibration (6).jpg">
+        <grid len="16mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img lsrc="lcalibration (7).jpg" rsrc="rcalibration (7).jpg">
+        <grid len="16mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img lsrc="lcalibration (8).jpg" rsrc="rcalibration (8).jpg">
+        <grid len="16mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img lsrc="lcalibration (9).jpg" rsrc="rcalibration (9).jpg">
+        <grid len="16mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img lsrc="lcalibration (10).jpg" rsrc="rcalibration (10).jpg">
+        <grid len="16mm">
+            <row>7</row>
+            <col>11</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img lsrc="lcalibration (11).jpg" rsrc="rcalibration (11).jpg">
+        <grid len="16mm">
             <row>7</row>
             <col>11</col>
         </grid>

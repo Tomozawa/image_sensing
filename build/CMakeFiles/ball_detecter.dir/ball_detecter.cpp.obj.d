@@ -279,14 +279,15 @@ CMakeFiles/ball_detecter.dir/ball_detecter.cpp.obj: \
  C:/Users/yudun/Programming/C++/image_sensing/include/utils.hpp \
  C:/msys64/mingw64/include/opencv4/opencv2/imgproc.hpp \
  C:/msys64/mingw64/include/opencv4/opencv2/imgproc/segmentation.hpp \
+ C:/Users/yudun/Programming/C++/image_sensing/include/StereoRRM.hpp \
+ C:/msys64/mingw64/include/c++/13.2.0/numeric \
+ C:/msys64/mingw64/include/c++/13.2.0/bits/stl_numeric.h \
+ C:/msys64/mingw64/include/c++/13.2.0/pstl/glue_numeric_defs.h \
  C:/Users/yudun/Programming/C++/image_sensing/include/InRangeParams.hpp \
  C:/Users/yudun/Programming/C++/image_sensing/include/HueLookupTable.hpp \
  C:/msys64/mingw64/include/nlohmann/json.hpp \
  C:/msys64/mingw64/include/c++/13.2.0/iterator \
  C:/msys64/mingw64/include/c++/13.2.0/bits/stream_iterator.h \
- C:/msys64/mingw64/include/c++/13.2.0/numeric \
- C:/msys64/mingw64/include/c++/13.2.0/bits/stl_numeric.h \
- C:/msys64/mingw64/include/c++/13.2.0/pstl/glue_numeric_defs.h \
  C:/msys64/mingw64/include/nlohmann/adl_serializer.hpp \
  C:/msys64/mingw64/include/nlohmann/detail/abi_macros.hpp \
  C:/msys64/mingw64/include/nlohmann/detail/conversions/from_json.hpp \

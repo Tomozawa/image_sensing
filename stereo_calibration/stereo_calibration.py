@@ -42,7 +42,11 @@ def calc_object_points(result, grid_len, row, col, zrot, xrot, yrot):
     result['object_points'].append(np.array(object_points))
 
 def find_image_points(result, img_file_name, row, col, is_left):
-    src = cv2.imread(img_file_name, cv2.IMREAD_GRAYSCALE)
+    src = cv2.imread(img_file_name)
+    src_with_corners = np.copy(src)
+
+    src = cv2.cvtColor(src, cv2.COLOR_RGB2GRAY)
+
     if src.size == 0:
         raise ImageProcessingException(f'Failed to load {img_file_name}')
     print(f'{img_file_name} is loaded')
@@ -54,7 +58,6 @@ def find_image_points(result, img_file_name, row, col, is_left):
     
     image_points = cv2.cornerSubPix(src, corners, (5, 5), (-1, -1), (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01))
 
-    src_with_corners = np.copy(src)
     cv2.drawChessboardCorners(src_with_corners, (col, row), image_points, True)
     cv2.imshow('calibration', src_with_corners)
     cv2.waitKey(0)
@@ -192,12 +195,13 @@ def main():
         try:
             limg_shape = find_image_points(corners, limg_file_name, row, col, True)
             rimg_shape = find_image_points(corners, rimg_file_name, row, col, False)
-            if (not img_size) or (limg_shape[::-1] == img_size and rimg_shape[::1] == img_size):
+            if (not img_size) or (limg_shape[::-1] == img_size and rimg_shape[::-1] == img_size):
                 img_size = limg_shape[::-1]
             else:
                 raise ImageProcessingException('image size differs from each images of left camera')
         except ImageProcessingException as e:
-            print(f'there was error in {rimg_file_name}: {e}')
+            print(f'there was error in {limg_file_name} or {rimg_file_name}: {e}')
+            exit(-1)
     
     left_initial_camera_matrix = np.array([
         [img_size[0] * left_focal_length / left_sensor_dimension[0], 0, img_size[0] / 2],
@@ -211,19 +215,41 @@ def main():
         [0, 0, 1]
     ])
 
-    ret, lmtx, ldist, rmtx, rdist, R, T, _, _ = cv2.stereoCalibrate(
+    ret, lmtx, ldist, _, _ = cv2.calibrateCamera(
         corners['object_points'],
         corners['left_image_points'],
-        corners['right_image_points'],
+        img_size,
         left_initial_camera_matrix,
         np.array([0, 0, 0, 0, 0]),
-        right_initial_camera_matrix,
-        np.array([0, 0, 0, 0, 0]),
-        img_size,
         flags=cv2.CALIB_USE_INTRINSIC_GUESS
     )
 
-    print(ret)
+    print(f'lelf: {ret}')
+
+    ret, rmtx, rdist, _, _ = cv2.calibrateCamera(
+        corners['object_points'],
+        corners['right_image_points'],
+        img_size,
+        right_initial_camera_matrix,
+        np.array([0, 0, 0, 0, 0]),
+        flags=cv2.CALIB_USE_INTRINSIC_GUESS
+    )
+
+    print(f'right: {ret}')
+
+    ret, _, ldist, _, rdist, R, T, _, _ = cv2.stereoCalibrate(
+        corners['object_points'],
+        corners['left_image_points'],
+        corners['right_image_points'],
+        lmtx,
+        ldist,
+        rmtx,
+        rdist,
+        img_size,
+        flags=cv2.CALIB_FIX_INTRINSIC
+    )
+
+    print(f'relative position: {ret}')
 
     if not ret:
         raise ImageProcessingException('failed to calibration')

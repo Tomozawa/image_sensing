@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/C/Users/yudun/Programming/C++/image_sensing/./include -isystem /C/msys64/mingw64/include/opencv4
 
-CXX_FLAGS = -std=gnu++20
+CXX_FLAGS = -g -D_DEBUG -std=gnu++20
 
