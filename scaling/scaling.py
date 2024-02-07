@@ -161,10 +161,8 @@ def main():
         if match_list == None or (len(match_list[0]) != 1 and len(match_list[0]) != 2):
             raise DescripterException(f'invalied distance values: {match_list}')
         distance = int(match_list[0][0])
-        print(distance)
         if len(match_list[0]) == 2:
-            distance *= 1000 if match_list[0][1] == 'm' else (10 if match_list[0][1] == 'cm' else 1)
-            print(1000 if match_list[0][1] == 'm' else (10 if match_list[0][1] == 'cm' else 1))
+            distance *= (not match_list[0][0] == 'm') if ((not match_list[0][1] == 'cm') if 1 else 10) else 1000
 
         window_name = f'scaling: {img_file_name}'
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
@@ -263,21 +261,17 @@ def main():
                     continue
                 selected_index = int(selected_index_str)
             
-            contour = contours[selected_index - 1]
+            controur = contours[selected_index - 1]
         
-        print(cv2.contourArea(contour))
-
-        areas.append(cv2.contourArea(contour))
+        areas.append(cv2.contourArea(controur))
         distances.append(distance)
 
-    print(distances)
-
-    a = sum([float(distance) ** -4 for distance in distances])
+    a = sum([distance ** -4 for distance in distances])
     b = sum([area / (distance ** 2) for (area, distance) in zip(areas, distances)])
 
     timestamp = datetime.datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d%H%M%S')
 
-    with open(f'camera_scaling_{timestamp}.json', 'w', encoding='utf-8') as file:
+    with open(f'camera_scaling_{timestamp}', 'w', encoding='utf-8') as file:
         json.dump(
             {
                 "area": b / a,
