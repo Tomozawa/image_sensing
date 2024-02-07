@@ -1,5 +1,4 @@
 C:/Users/yudun/Programming/C++/image_sensing/build/CMakeFiles/ball_detecter.dir
 C:/Users/yudun/Programming/C++/image_sensing/build/CMakeFiles/StereoCamEstimateEngineTest.dir
-C:/Users/yudun/Programming/C++/image_sensing/build/CMakeFiles/StereoRRMTest.dir
 C:/Users/yudun/Programming/C++/image_sensing/build/CMakeFiles/edit_cache.dir
 C:/Users/yudun/Programming/C++/image_sensing/build/CMakeFiles/rebuild_cache.dir

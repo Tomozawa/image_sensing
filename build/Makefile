@@ -142,19 +142,6 @@ StereoCamEstimateEngineTest/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/StereoCamEstimateEngineTest.dir/build.make CMakeFiles/StereoCamEstimateEngineTest.dir/build
 .PHONY : StereoCamEstimateEngineTest/fast
 
-#=============================================================================
-# Target rules for targets named StereoRRMTest
-
-# Build rule for target.
-StereoRRMTest: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 StereoRRMTest
-.PHONY : StereoRRMTest
-
-# fast build rule for target.
-StereoRRMTest/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StereoRRMTest.dir/build.make CMakeFiles/StereoRRMTest.dir/build
-.PHONY : StereoRRMTest/fast
-
 StereoCamEstimateEngineTest.obj: StereoCamEstimateEngineTest.cpp.obj
 .PHONY : StereoCamEstimateEngineTest.obj
 
@@ -178,30 +165,6 @@ StereoCamEstimateEngineTest.s: StereoCamEstimateEngineTest.cpp.s
 StereoCamEstimateEngineTest.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/StereoCamEstimateEngineTest.dir/build.make CMakeFiles/StereoCamEstimateEngineTest.dir/StereoCamEstimateEngineTest.cpp.s
 .PHONY : StereoCamEstimateEngineTest.cpp.s
-
-StereoRRMTest.obj: StereoRRMTest.cpp.obj
-.PHONY : StereoRRMTest.obj
-
-# target to build an object file
-StereoRRMTest.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StereoRRMTest.dir/build.make CMakeFiles/StereoRRMTest.dir/StereoRRMTest.cpp.obj
-.PHONY : StereoRRMTest.cpp.obj
-
-StereoRRMTest.i: StereoRRMTest.cpp.i
-.PHONY : StereoRRMTest.i
-
-# target to preprocess a source file
-StereoRRMTest.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StereoRRMTest.dir/build.make CMakeFiles/StereoRRMTest.dir/StereoRRMTest.cpp.i
-.PHONY : StereoRRMTest.cpp.i
-
-StereoRRMTest.s: StereoRRMTest.cpp.s
-.PHONY : StereoRRMTest.s
-
-# target to generate assembly for a file
-StereoRRMTest.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StereoRRMTest.dir/build.make CMakeFiles/StereoRRMTest.dir/StereoRRMTest.cpp.s
-.PHONY : StereoRRMTest.cpp.s
 
 ball_detecter.obj: ball_detecter.cpp.obj
 .PHONY : ball_detecter.obj
@@ -260,14 +223,10 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... StereoCamEstimateEngineTest"
-	@echo "... StereoRRMTest"
 	@echo "... ball_detecter"
 	@echo "... StereoCamEstimateEngineTest.obj"
 	@echo "... StereoCamEstimateEngineTest.i"
 	@echo "... StereoCamEstimateEngineTest.s"
-	@echo "... StereoRRMTest.obj"
-	@echo "... StereoRRMTest.i"
-	@echo "... StereoRRMTest.s"
 	@echo "... ball_detecter.obj"
 	@echo "... ball_detecter.i"
 	@echo "... ball_detecter.s"

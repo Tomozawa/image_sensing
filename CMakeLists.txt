@@ -23,10 +23,3 @@ add_executable(
 )
 
 target_link_libraries(StereoCamEstimateEngineTest ${OpenCV_LIBRARIES})
-
-add_executable(
-    StereoRRMTest
-    StereoRRMTest.cpp
-)
-
-target_link_libraries(StereoRRMTest ${OpenCV_LIBRARIES})
