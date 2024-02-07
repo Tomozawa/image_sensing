@@ -70,7 +70,7 @@ def find_image_points(result, img_file_name, row, col, is_left):
 
     return src.shape
 
-def parse_img_tag(img_tag):
+def parse_img_tag(img_tag, focal_length):
     limg_file_name = img_tag.attrib['lsrc']
     rimg_file_name = img_tag.attrib['rsrc']
         
@@ -81,6 +81,7 @@ def parse_img_tag(img_tag):
     grid_len = int(match_list[0][0])
     if len(match_list[0]) == 2:
         grid_len *= 1000 if match_list[0][1] == 'm' else (10 if match_list[0][1] == 'cm' else 1)
+    grid_len /= focal_length
     
     row = int(img_tag.find('grid/row').text)
     
@@ -110,7 +111,7 @@ def main():
 # following tags are used to decribe calibration file
 #
 # <calibration type="stereo"> - the root tag
-# <camera side="left or right"> - represents camera. It must contain <focal>
+# <camera> - represents camera. It must contain <focal>
 # <focal> - describe focal distance. The unit is mm. (decimal value is supported.)
 # <sensor> - describe image sensor spec. It must contain <width> and <height>
 # <width> - width of image sensor. The unit is mm. (decimal value is supported)
@@ -127,14 +128,7 @@ def main():
 ###### example ######
 # <?xml version="1.0" encoding="UTF-8" ?>
 # <calibration type="stereo">
-#   <camera side="left">
-#       <focal>3</focal>
-#       <sensor>
-#           <width>3</width>
-#           <height>3</height>
-#       </sensor>
-#   </camera>
-#   <camera side="right">
+#   <camera>
 #       <focal>3</focal>
 #       <sensor>
 #           <width>3</width>
@@ -171,24 +165,17 @@ def main():
         'right_image_points': []
     }
 
-    left_focal_length = float(root.find("camera[@side='left']/focal").text)
+    focal_length = float(root.find("camera/focal").text)
 
-    right_focal_length = float(root.find("camera[@side='right']/focal").text)
-
-    left_sensor_dimension = [
-        float(root.find("camera[@side='left']/sensor/width").text),
-        float(root.find("camera[@side='left']/sensor/height").text)
-    ]
-
-    right_sensor_dimension = [
-        float(root.find("camera[@side='right']/sensor/width").text),
-        float(root.find("camera[@side='right']/sensor/height").text)
+    sensor_dimension = [
+        float(root.find("camera/sensor/width").text),
+        float(root.find("camera/sensor/height").text)
     ]
 
     img_size = None
 
     for img in root.findall("img"):
-        limg_file_name, rimg_file_name, grid_len, row, col, zrot, xrot, yrot = parse_img_tag(img)
+        limg_file_name, rimg_file_name, grid_len, row, col, zrot, xrot, yrot = parse_img_tag(img, focal_length)
         
         calc_object_points(corners, grid_len, row, col, zrot, xrot, yrot)
 
@@ -203,15 +190,9 @@ def main():
             print(f'there was error in {limg_file_name} or {rimg_file_name}: {e}')
             exit(-1)
     
-    left_initial_camera_matrix = np.array([
-        [img_size[0] * left_focal_length / left_sensor_dimension[0], 0, img_size[0] / 2],
-        [0, img_size[1] * left_focal_length / left_sensor_dimension[1], img_size[1] / 2],
-        [0, 0, 1]
-    ])
-
-    right_initial_camera_matrix = np.array([
-        [img_size[0] * right_focal_length / right_sensor_dimension[0], 0, img_size[0] / 2],
-        [0, img_size[1] * right_focal_length / right_sensor_dimension[1], img_size[1] / 2],
+    initial_camera_matrix = np.array([
+        [img_size[0] * focal_length / sensor_dimension[0], 0, img_size[0] / 2],
+        [0, img_size[1] * focal_length / sensor_dimension[1], img_size[1] / 2],
         [0, 0, 1]
     ])
 
@@ -219,7 +200,7 @@ def main():
         corners['object_points'],
         corners['left_image_points'],
         img_size,
-        left_initial_camera_matrix,
+        initial_camera_matrix,
         np.array([0, 0, 0, 0, 0]),
         flags=cv2.CALIB_USE_INTRINSIC_GUESS
     )
@@ -230,7 +211,7 @@ def main():
         corners['object_points'],
         corners['right_image_points'],
         img_size,
-        right_initial_camera_matrix,
+        initial_camera_matrix,
         np.array([0, 0, 0, 0, 0]),
         flags=cv2.CALIB_USE_INTRINSIC_GUESS
     )
@@ -246,7 +227,7 @@ def main():
         rmtx,
         rdist,
         img_size,
-        flags=cv2.CALIB_FIX_INTRINSIC
+        flags=cv2.CALIB_FIX_INTRINSIC+cv2.CALIB_FIX_ASPECT_RATIO+cv2.CALIB_SAME_FOCAL_LENGTH
     )
 
     print(f'relative position: {ret}')
@@ -266,7 +247,7 @@ def main():
             'right_distortion': rdist.tolist(),
             'R_matrix': R.tolist(),
             'T_vector': T.tolist(),
-            'focal_distance': right_focal_length
+            'focal_distance': focal_length
         }, file)
     
     print(f'calibrationfile is saved to {file_name}')

@@ -7,6 +7,7 @@
 #include <utils.hpp>
 #include <cmath>
 #include <StereoRRM.hpp>
+#include <optional>
 
 namespace position_estimate_engine{
     enum class EngineType{
@@ -232,25 +233,31 @@ namespace position_estimate_engine{
         explicit PositionEstimateEngine(const QMatrix& Q): Q(Q){}
 
         /*ひずみ補正済み・平衡化済みの画像を入力する*/
-        std::vector<cv::Point3d> estimate_positions(const std::vector<cv::Point2i>& left_image_points, const std::vector<cv::Point2i>& right_image_points) const{
+        std::optional<std::vector<cv::Point3d>> estimate_positions(const std::vector<cv::Point2i>& left_image_points, const std::vector<cv::Point2i>& right_image_points) const{
             std::vector<cv::Point3d> result;
-            std::vector<double> disps = stereo_rrm::StereoRRM::calc_disps(left_image_points, right_image_points);
-            for(unsigned i = 0; i < left_image_points.size(); ++i){
-                const cv::Vec4d homo_2d_vec(
-                left_image_points.at(i).x,
-                left_image_points.at(i).y,
-                disps.at(i),
-                1
-            );
-            const cv::Vec4d homo_3d_vec = Q * homo_2d_vec;
+            std::vector<double> disps;
 
-            result.push_back(
-                {
-                    homo_3d_vec[0] / homo_3d_vec[3],
-                    homo_3d_vec[1] / homo_3d_vec[3],
-                    homo_3d_vec[2] / homo_3d_vec[3]
-                }
-            );
+            const auto disps_result = stereo_rrm::StereoRRM::calc_disps(left_image_points, right_image_points);
+            if(disps_result) disps = disps_result.value();
+            else return {};
+ 
+            CV_DbgAssert(left_image_points.size() == disps.size());
+            for(unsigned i = 0; i < left_image_points.size(); ++i){
+                const std::vector<cv::Vec3d> transform_src{
+                    {
+                        static_cast<double>(left_image_points.at(i).x),
+                        static_cast<double>(left_image_points.at(i).y),
+                        disps.at(i)
+                    }
+                };
+                std::vector<cv::Vec3d> transform_dst;
+                cv::perspectiveTransform(transform_src, transform_dst, Q.inv());
+
+                result.push_back({
+                    transform_dst.at(0)[0],
+                    transform_dst.at(0)[1],
+                    transform_dst.at(0)[2]
+                });
             }
             return result;
         }

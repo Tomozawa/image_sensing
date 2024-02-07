@@ -116,6 +116,10 @@ GlobalVariables global_variables;
 
 int main(){
     utils::logging::setLogLevel(utils::logging::LogLevel::LOG_LEVEL_DEBUG);
+#ifdef _DEBUG
+    CV_LOG_DEBUG(nullptr, "In debug mode");
+#endif
+
     CameraCalibration calibration;
     // CameraScaling scaling;
 
@@ -139,7 +143,7 @@ int main(){
     //     calibration.camera_matrix
     // );
 
-    const Size2i image_size(640, 480);
+    const Size2i image_size(1280, 720);
     constexpr int num_channels = 3;
 
     Mat mapl1, mapl2, mapr1, mapr2;
@@ -149,7 +153,7 @@ int main(){
         cv::stereoRectify(
             calibration.left_camera_matrix,
             calibration.left_distorsion,
-            calibration.r_matrix,
+            calibration.right_camera_matrix,
             calibration.right_distorsion,
             image_size,
             calibration.r_matrix,
@@ -159,6 +163,7 @@ int main(){
             Pl,
             Pr,
             Q,
+            0,
             0
         );
         cv::initUndistortRectifyMap(
@@ -468,12 +473,26 @@ void execute_calc(
     const std::vector<Point2i> left_balls = find_balls(left_image, params, output1);
     const std::vector<Point2i> right_balls = find_balls(right_image, params, output2);
 
-    std::vector<Point3d> positions = engine.estimate_positions(left_balls, right_balls);
+    const auto finalize = [output3, left_image](){
+        left_image.copyTo(output3);
+    };
+
+    if(left_balls.size() != right_balls.size()){
+        finalize();
+        return;
+    }
+
+    std::vector<Point3d> positions;
+    const auto positions_result = engine.estimate_positions(left_balls, right_balls);
+    if(positions_result) positions = positions_result.value();
+    else{
+        finalize();
+        return;
+    }
+
+    Mat left_image_with_positions = left_image.clone();
 
     CV_DbgAssert(left_balls.size() == positions.size());
-
-    Mat left_image_with_positions(left_image);
-
     for(unsigned i = 0; i < left_balls.size(); ++i){
         putText(
             left_image_with_positions,
@@ -520,8 +539,8 @@ std::vector<Point2i> find_balls(const Mat input, const InRangeParams& params, Ou
 
         const double area = contourArea(convex_contour);
 
-        if(area < 400) continue;
-        if(convex_contour.size() < 10) continue;
+        if(area < 1200) continue;
+        if(convex_contour.size() != 4) continue;
 
         const Moments moment = moments(convex_contour, true);
         result.push_back(Point2i(moment.m10 / moment.m00, moment.m01 / moment.m00));
