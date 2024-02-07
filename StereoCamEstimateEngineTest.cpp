@@ -43,7 +43,7 @@ int main(){
     CV_DbgAssert(lsrc.cols == rsrc.cols && lsrc.rows == rsrc.rows);
     CV_DbgAssert(lsrc.channels() == rsrc.channels());
 
-    const auto engine = PositionEstimateEngine<EngineType::STEREO_CAM_SGBM>::create(
+    const auto engine = PositionEstimateEngine<EngineType::STEREO_CAM>::create(
         Size2i(
             lsrc.cols,
             lsrc.rows

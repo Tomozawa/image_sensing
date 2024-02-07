@@ -39,11 +39,9 @@ struct CameraCalibration{
 // };
 
 // void execute_calc(InputArray, OutputArray, OutputArray, OutputArray, const InRangeParams&, const PositionEstimateEngine<EngineType::MONO_CAM>&);
-// void execute_calc(InputArray, InputArray, OutputArray, OutputArray, OutputArray, const InRangeParams&, const PositionEstimateEngine<EngineType::STEREO_CAM_SGBM>&);
-void execute_calc(InputArray, InputArray, OutputArray, OutputArray, OutputArray, const InRangeParams&, const PositionEstimateEngine<EngineType::STEREO_CAM_RRM>&);
+void execute_calc(InputArray, InputArray, OutputArray, OutputArray, OutputArray, const InRangeParams&, const PositionEstimateEngine<EngineType::STEREO_CAM>&);
 CameraCalibration load_calibration_file(void);
 // CameraScaling load_scaling_file(void);
-std::vector<Point2i> find_balls(const Mat, const InRangeParams&, OutputArray);
 
 //グローバル変数を包む構造体
 //グローバル変数が必要なのでやむなし
@@ -82,20 +80,6 @@ struct GlobalVariables{
 
         /*left_video_capture_*/
         /*right_video_capture_*/
-        inline bool set_resolution(const Size2i size){
-            left_video_capture_.set(CAP_PROP_FRAME_WIDTH, size.width);
-            left_video_capture_.set(CAP_PROP_FRAME_HEIGHT, size.height);
-            right_video_capture_.set(CAP_PROP_FRAME_WIDTH, size.width);
-            right_video_capture_.set(CAP_PROP_FRAME_HEIGHT, size.height);
-
-            return(
-                left_video_capture_.get(CAP_PROP_FRAME_WIDTH) == size.width
-                && left_video_capture_.get(CAP_PROP_FRAME_HEIGHT) == size.height
-                && right_video_capture_.get(CAP_PROP_FRAME_WIDTH) == size.width
-                && right_video_capture_.get(CAP_PROP_FRAME_HEIGHT) == size.height
-            );
-        }
-
         inline bool open_cameras(void){
             left_video_capture_.open(1);
             right_video_capture_.open(2);
@@ -138,52 +122,16 @@ int main(){
     //     },
     //     calibration.camera_matrix
     // );
-
     const Size2i image_size(640, 480);
     constexpr int num_channels = 3;
-
-    Mat mapl1, mapl2, mapr1, mapr2;
-    QMatrix Q;
-    {
-        Mat Rl, Rr, Pl, Pr;
-        cv::stereoRectify(
-            calibration.left_camera_matrix,
-            calibration.left_distorsion,
-            calibration.r_matrix,
-            calibration.right_distorsion,
-            image_size,
-            calibration.r_matrix,
-            calibration.t_vector,
-            Rl,
-            Rr,
-            Pl,
-            Pr,
-            Q,
-            0
-        );
-        cv::initUndistortRectifyMap(
-            calibration.left_camera_matrix,
-            calibration.left_distorsion,
-            Rl,
-            Pl,
-            image_size,
-            CV_16SC2,
-            mapl1,
-            mapl2
-        );
-        cv::initUndistortRectifyMap(
-            calibration.right_camera_matrix,
-            calibration.right_distorsion,
-            Rr,
-            Pr,
-            image_size,
-            CV_16SC2,
-            mapr1,
-            mapr2
-        );
-    }
-
-    const PositionEstimateEngine<EngineType::STEREO_CAM_RRM> engine(Q);
+    const auto engine = PositionEstimateEngine<EngineType::STEREO_CAM>::create(
+        image_size,
+        num_channels,
+        calibration.left_camera_matrix,
+        calibration.right_camera_matrix,
+        calibration.r_matrix,
+        calibration.t_vector
+    );
 
     const String window_name = "Canny";
     namedWindow(window_name);
@@ -243,40 +191,22 @@ int main(){
     );
 
     CV_Assert(global_variables.open_cameras());
-    CV_Assert(global_variables.set_resolution(image_size));
 
     do{
         global_variables.grabs();
         // Mat input_img, undistort_img, output1_img, output2_img, output3_img;
-        Mat left_input_img, right_input_img, left_recify_img, right_recify_img, output1_img, output2_img, output3_img;
+        Mat left_input_img, right_input_img, left_undistort_img, right_undistort_img, output1_img, output2_img, output3_img;
         
         // global_variables.retrieve(input_img);
         global_variables.left_retrieve(left_input_img);
         global_variables.right_retrieve(right_input_img);
-        CV_DbgAssert(left_input_img.cols == image_size.width && left_input_img.rows == image_size.height);
-        CV_DbgAssert(right_input_img.cols == image_size.width && right_input_img.rows == image_size.height);
-        CV_DbgAssert(left_input_img.channels() == num_channels && right_input_img.channels() == num_channels);
 
         // undistort(input_img, undistort_img, calibration.camera_matrix, calibration.distorsion);
-        // undistort(left_input_img, left_undistort_img, calibration.left_camera_matrix, calibration.left_distorsion);
-        // undistort(right_input_img, right_undistort_img, calibration.right_camera_matrix, calibration.right_distorsion);
-        remap(
-            left_input_img,
-            left_recify_img,
-            mapl1,
-            mapl2,
-            INTER_LINEAR
-        );
-        remap(
-            right_input_img,
-            right_recify_img,
-            mapr1,
-            mapr2,
-            INTER_LINEAR
-        );
+        undistort(left_input_img, left_undistort_img, calibration.left_camera_matrix, calibration.left_distorsion);
+        undistort(right_input_img, right_undistort_img, calibration.right_camera_matrix, calibration.right_distorsion);
 
         // execute_calc(undistort_img, output1_img, output2_img, output3_img, global_variables.replace_param(), engine);
-        execute_calc(left_recify_img, right_recify_img, output1_img, output2_img, output3_img, global_variables.replace_param(), engine);
+        execute_calc(left_undistort_img, right_undistort_img, output1_img, output2_img, output3_img, global_variables.replace_param(), engine);
 
         imshow("output1", output1_img);
         imshow("output2", output2_img);
@@ -289,17 +219,17 @@ int main(){
 }
 
 // void execute_calc(InputArray input, OutputArray output1, OutputArray output2, OutputArray output3, const InRangeParams& params, const PositionEstimateEngine<EngineType::MONO_CAM>& engine){
-//     Mat image, hsv, hsv_blur, hsv_filtered, closed, opened, canny_img, image_with_contours;
+//     Mat image, hsv, blur, hsv_filtered, closed, opened, canny_img, image_with_contours;
 //     std::vector<std::vector<Point>> contours;
 //     std::vector<Vec4i> hierarchy;
 //     CV_DbgAssert(input.isMat());
 //     image = input.getMat();
 
 //     cvtColor(image, hsv, ColorConversionCodes::COLOR_BGR2HSV_FULL);
-//     GaussianBlur(hsv, hsv_blur, Size(11, 11), 8.5, 8.5);
+//     GaussianBlur(hsv, blur, Size(11, 11), 8.5, 8.5);
 
 //     //普通のinRangeだと赤色が検知できない
-//     hsv_range(hsv_blur, global_variables.get_hue_lut(), params.s_min, params.s_max, params.v_min, params.v_max, hsv_filtered);
+//     hsv_range(blur, global_variables.get_hue_lut(), params.s_min, params.s_max, params.v_min, params.v_max, hsv_filtered);
 
 //     opening<2>(hsv_filtered, opened);
 //     closing<2>(opened, closed);
@@ -356,102 +286,6 @@ int main(){
 //     output3.move(image_with_contours);
 // }
 
-// void execute_calc(
-//     InputArray left_input,
-//     InputArray right_input,
-//     OutputArray output1,
-//     OutputArray output2,
-//     OutputArray output3,
-//     const InRangeParams& params,
-//     const PositionEstimateEngine<EngineType::STEREO_CAM_SGBM>& engine
-// ){
-//     CV_DbgAssert(left_input.isMat() && right_input.isMat());
-//     Mat left_image = left_input.getMat();
-//     Mat right_image = right_input.getMat();
-//     Mat disp;
-
-//     {
-//         Mat left_gray, right_gray, left_blur, right_blur, normalized_disp;
-
-//         cvtColor(
-//             left_image,
-//             left_gray,
-//             COLOR_RGB2GRAY
-//         );
-//         cvtColor(
-//             right_image,
-//             right_gray,
-//             COLOR_RGB2GRAY
-//         );
-//         GaussianBlur(left_gray, left_blur, Size(3, 3), 1);
-//         GaussianBlur(right_gray, right_blur, Size(3, 3),1);
-
-//         disp = engine.get_disp(left_blur, right_blur);
-
-//         normalize(
-//             disp,
-//             normalized_disp,
-//             0,
-//             UINT8_MAX,
-//             NORM_MINMAX,
-//             CV_8UC1
-//         );
-
-//         output3.move(normalized_disp);
-//     }
-
-//     {
-//         Mat hsv, hsv_blur, hsv_filtered, closed, opened, canny_img, left_image_with_contours;
-//         std::vector<std::vector<Point>> contours;
-//         std::vector<Vec4i> hierarchy;
-
-//         cvtColor(left_image, hsv, ColorConversionCodes::COLOR_BGR2HSV_FULL);
-//         GaussianBlur(hsv, hsv_blur, Size(11, 11), 8.5);
-
-//         //普通のinRangeだと赤色が検知できない
-//         hsv_range(hsv_blur, global_variables.get_hue_lut(), params.s_min, params.s_max, params.v_min, params.v_max, hsv_filtered);
-
-//         opening<2>(hsv_filtered, opened);
-//         closing<2>(opened, closed);
-        
-//         Canny(closed, canny_img, 25, 75);
-
-//         findContours(canny_img, contours, hierarchy, RetrievalModes::RETR_LIST, ContourApproximationModes::CHAIN_APPROX_SIMPLE);
-
-//         left_image.copyTo(left_image_with_contours);
-
-//         for(int i = 0; i < contours.size(); i++){
-//             if(hierarchy.at(i)[3] >= 0) continue;
-
-//             std::vector<Point> applox_contour, convex_contour;
-//             approxPolyDP(contours[i], applox_contour, 0.005 * arcLength(contours[i], true), true);
-//             convexHull(applox_contour, convex_contour);
-
-//             const double area = contourArea(convex_contour);
-
-//             if(area < 400) continue;
-//             if(convex_contour.size() < 10) continue;
-
-//             const Moments moment = moments(convex_contour, true);
-//             const Point2d image_point(moment.m10 / moment.m00, moment.m01 / moment.m00);
-//             const cv::Point3d position = engine.estimate_position(disp, image_point);
-
-//             polylines(left_image_with_contours, convex_contour, true, Scalar{0, 0, 255});
-//             putText(
-//                 left_image_with_contours,
-//                 /*position*/format("%lf", static_cast<double>(disp.at<short>(image_point.y, image_point.x)) / 16.0),
-//                 Point{static_cast<int>(moment.m10 / moment.m00), static_cast<int>(moment.m01 / moment.m00)},
-//                 HersheyFonts::FONT_HERSHEY_SIMPLEX,
-//                 1,
-//                 Scalar{0, 0, 255},
-//                 3
-//             );
-//         }
-//     }
-//     output1.move(left_image);
-//     output2.move(right_image);
-// }
-
 void execute_calc(
     InputArray left_input,
     InputArray right_input,
@@ -459,48 +293,21 @@ void execute_calc(
     OutputArray output2,
     OutputArray output3,
     const InRangeParams& params,
-    const PositionEstimateEngine<EngineType::STEREO_CAM_RRM>& engine
+    const PositionEstimateEngine<EngineType::STEREO_CAM>& engine
 ){
-    CV_DbgAssert(left_input.isMat() && right_input.isMat());
-    const Mat left_image = left_input.getMat();
-    const Mat right_image = right_input.getMat();
-
-    const std::vector<Point2i> left_balls = find_balls(left_image, params, output1);
-    const std::vector<Point2i> right_balls = find_balls(right_image, params, output2);
-
-    std::vector<Point3d> positions = engine.estimate_positions(left_balls, right_balls);
-
-    CV_DbgAssert(left_balls.size() == positions.size());
-
-    Mat left_image_with_positions(left_image);
-
-    for(unsigned i = 0; i < left_balls.size(); ++i){
-        putText(
-            left_image_with_positions,
-            cv::format("(%d, %d, %d)", positions.at(i).x, positions.at(i).y, positions.at(i).z),
-            left_balls.at(i),
-            FONT_HERSHEY_COMPLEX,
-            1,
-            Scalar(0, 0, 255),
-            3
-        );
-    }
-
-    output3.move(left_image_with_positions);
-}
-
-
-std::vector<Point2i> find_balls(const Mat input, const InRangeParams& params, OutputArray output){
-    Mat hsv, hsv_blur, hsv_filtered, closed, opened, canny_img, image_with_contours;
+    Mat left_image, hsv, blur, hsv_filtered, closed, opened, canny_img, left_image_with_contours, disp;
     std::vector<std::vector<Point>> contours;
     std::vector<Vec4i> hierarchy;
-    std::vector<Point2i> result;
+    CV_DbgAssert(left_input.isMat());
+    left_image = left_input.getMat();
 
-    cvtColor(input, hsv, ColorConversionCodes::COLOR_BGR2HSV_FULL);
-    GaussianBlur(hsv, hsv_blur, Size(11, 11), 8.5);
+    disp = engine.get_disp(left_input, right_input);
+
+    cvtColor(left_image, hsv, ColorConversionCodes::COLOR_BGR2HSV_FULL);
+    GaussianBlur(hsv, blur, Size(11, 11), 8.5, 8.5);
 
     //普通のinRangeだと赤色が検知できない
-    hsv_range(hsv_blur, global_variables.get_hue_lut(), params.s_min, params.s_max, params.v_min, params.v_max, hsv_filtered);
+    hsv_range(blur, global_variables.get_hue_lut(), params.s_min, params.s_max, params.v_min, params.v_max, hsv_filtered);
 
     opening<2>(hsv_filtered, opened);
     closing<2>(opened, closed);
@@ -509,7 +316,7 @@ std::vector<Point2i> find_balls(const Mat input, const InRangeParams& params, Ou
 
     findContours(canny_img, contours, hierarchy, RetrievalModes::RETR_LIST, ContourApproximationModes::CHAIN_APPROX_SIMPLE);
 
-    input.copyTo(image_with_contours);
+    left_image.copyTo(left_image_with_contours);
 
     for(int i = 0; i < contours.size(); i++){
         if(hierarchy.at(i)[3] >= 0) continue;
@@ -524,21 +331,33 @@ std::vector<Point2i> find_balls(const Mat input, const InRangeParams& params, Ou
         if(convex_contour.size() < 10) continue;
 
         const Moments moment = moments(convex_contour, true);
-        result.push_back(Point2i(moment.m10 / moment.m00, moment.m01 / moment.m00));
+        const Point2d image_point(moment.m10 / moment.m00, moment.m01 / moment.m00);
+        const cv::Point3d position = engine.estimate_position(disp, image_point);
+
+        polylines(left_image_with_contours, convex_contour, true, Scalar{0, 0, 255});
+        putText(
+            left_image_with_contours,
+            cv::format("(%d, %d, %d)", static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(position.z)),
+            Point{static_cast<int>(moment.m10 / moment.m00), static_cast<int>(moment.m01 / moment.m00)},
+            HersheyFonts::FONT_HERSHEY_SIMPLEX,
+            1,
+            Scalar{0, 0, 255},
+            3
+        );
     }
 
-    output.move(closed);
-
-    return result;
+    output1.move(hsv_filtered);
+    output2.move(opened);
+    output3.move(left_image_with_contours);
 }
 
 CameraCalibration load_calibration_file(){
     CameraCalibration result;
 
     // std::ifstream ifs("camera_calibration.json");
-    std::ifstream ifs("stereo_camera_calibration.json");
+    std::ifstream ifs("stereo_calibration.json");
     json calibration_json;
-    if(!ifs.is_open()) throw std::runtime_error("Can't open stereo_camera_calibration.json");
+    if(!ifs.is_open()) throw std::runtime_error("Can't open camera_calibration.json");
 
     ifs >> calibration_json;
 
@@ -598,7 +417,7 @@ CameraCalibration load_calibration_file(){
         r_matrix_ref.at(2).at(0), r_matrix_ref.at(2).at(1), r_matrix_ref.at(2).at(2)
     };
 
-    const json& t_vector_ref = calibration_json.at("T_vector");
+    const json& t_vector_ref = calibration_json.at("T_vec");
     result.t_vector = {
         t_vector_ref.at(0).at(0),
         t_vector_ref.at(1).at(0),

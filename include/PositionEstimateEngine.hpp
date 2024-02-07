@@ -6,13 +6,11 @@
 #include <matrix.hpp>
 #include <utils.hpp>
 #include <cmath>
-#include <StereoRRM.hpp>
 
 namespace position_estimate_engine{
     enum class EngineType{
         MONO_CAM,
-        STEREO_CAM_RRM, // Round Robin Matching
-        STEREO_CAM_SGBM
+        STEREO_CAM
     };
 
     struct ScalingFactor{
@@ -71,7 +69,6 @@ namespace position_estimate_engine{
             return scaling_factor.distance * std::sqrt(scaling_factor.area / area);
         }
 
-        /*ひずみ補正済みの画像を入力する*/
         cv::Point3d estimate_position(const cv::Point2i image_point, const float area) const{
             const double distance = this->distance(area);
             const cv::Vec3d direction = this->direction(image_point);
@@ -80,7 +77,7 @@ namespace position_estimate_engine{
     };
 
     template<>
-    class PositionEstimateEngine<EngineType::STEREO_CAM_SGBM>{
+    class PositionEstimateEngine<EngineType::STEREO_CAM>{
         private:
         const cv::Ptr<cv::StereoSGBM> sgbm;
         const cv::Mat mapl1;
@@ -96,7 +93,7 @@ namespace position_estimate_engine{
             const cv::Mat mapl2,
             const cv::Mat mapr1,
             const cv::Mat mapr2,
-            const QMatrix Q
+            const cv::Matx44d Q
         ):
             sgbm(sgbm),
             mapl1(mapl1),
@@ -106,7 +103,7 @@ namespace position_estimate_engine{
             Q(Q)
         {}
 
-        static PositionEstimateEngine<EngineType::STEREO_CAM_SGBM> create(
+        static PositionEstimateEngine<EngineType::STEREO_CAM> create(
             const cv::Size2i img_size,
             const unsigned num_channels,
             const CameraMatrix lcamera_matrix,
@@ -114,24 +111,23 @@ namespace position_estimate_engine{
             const RMatrix R,
             const TVec T
         ){
-            /*const unsigned numDisparties = static_cast<unsigned>((img_size.width / 8) + 15) & ~0b1111*/;
-            const unsigned numDisparties = 150;
-            const unsigned SADWindowSize = 6;
+            const unsigned numDisparties = static_cast<unsigned>((img_size.width / 8) + 15) & ~0b1111;
+            const unsigned SADWindowSize = 11;
             const auto sgbm = cv::StereoSGBM::create(
                 0,
                 numDisparties,
                 SADWindowSize,
-                /*8U * num_channels * SADWindowSize * SADWindowSize*/8U * 3 * num_channels * SADWindowSize * SADWindowSize,
-                /*32U * num_channels * SADWindowSize * SADWindowSize*/32U * 3 * num_channels * SADWindowSize * SADWindowSize,
-                /*1*/11,
-                /*63*/0,
+                8U * num_channels * SADWindowSize * SADWindowSize,
+                32U * num_channels * SADWindowSize * SADWindowSize,
+                1,
+                63,
                 5,
                 100,
-                /*32*/16
+                32
             );
 
             cv::Mat Rl, Rr, Pl, Pr, mapl1, mapl2, mapr1, mapr2;
-            QMatrix Q;
+            cv::Matx44d Q;
             cv::stereoRectify(
                 lcamera_matrix,
                 cv::Vec4d(),
@@ -168,7 +164,7 @@ namespace position_estimate_engine{
                 mapr2
             );
 
-            return PositionEstimateEngine<EngineType::STEREO_CAM_SGBM>(
+            return PositionEstimateEngine<EngineType::STEREO_CAM>(
                 std::move(sgbm),
                 mapl1,
                 mapl2,
@@ -178,7 +174,6 @@ namespace position_estimate_engine{
             );
         }
 
-        /*ひずみ補正済み・平行化前の画像を入力する*/
         cv::Mat get_disp(const cv::InputArray left, const cv::InputArray right) const{
             cv::Mat serialized_left, serialized_right;
             cv::remap(
@@ -206,11 +201,12 @@ namespace position_estimate_engine{
         }
 
         cv::Point3d estimate_position(const cv::Mat disp, const cv::Point2i image_point) const{
-            CV_DbgAssert(disp.type() == CV_16S);
+            CV_LOG_DEBUG(nullptr, disp.type());
+            CV_DbgAssert(disp.type() == CV_64F);
             const cv::Vec4d homo_2d_vec(
                 image_point.x,
                 image_point.y,
-                static_cast<double>(disp.at<short>(image_point.y, image_point.x)) / 16.0,
+                disp.at<double>(image_point.x, image_point.y),
                 1
             );
             const cv::Vec4d homo_3d_vec = Q * homo_2d_vec;
@@ -220,39 +216,6 @@ namespace position_estimate_engine{
                 homo_3d_vec[1] / homo_3d_vec[3],
                 homo_3d_vec[2] / homo_3d_vec[3]
             );
-        }
-    };
-
-    template<>
-    class PositionEstimateEngine<EngineType::STEREO_CAM_RRM>{
-        private:
-        const QMatrix Q;
-
-        public:
-        explicit PositionEstimateEngine(const QMatrix& Q): Q(Q){}
-
-        /*ひずみ補正済み・平衡化済みの画像を入力する*/
-        std::vector<cv::Point3d> estimate_positions(const std::vector<cv::Point2i>& left_image_points, const std::vector<cv::Point2i>& right_image_points) const{
-            std::vector<cv::Point3d> result;
-            std::vector<double> disps = stereo_rrm::StereoRRM::calc_disps(left_image_points, right_image_points);
-            for(unsigned i = 0; i < left_image_points.size(); ++i){
-                const cv::Vec4d homo_2d_vec(
-                left_image_points.at(i).x,
-                left_image_points.at(i).y,
-                disps.at(i),
-                1
-            );
-            const cv::Vec4d homo_3d_vec = Q * homo_2d_vec;
-
-            result.push_back(
-                {
-                    homo_3d_vec[0] / homo_3d_vec[3],
-                    homo_3d_vec[1] / homo_3d_vec[3],
-                    homo_3d_vec[2] / homo_3d_vec[3]
-                }
-            );
-            }
-            return result;
         }
     };
 }
