@@ -56,5 +56,4 @@ set(CMAKE_MAKEFILE_PRODUCTS
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/ball_detecter.dir/DependInfo.cmake"
-  "CMakeFiles/StereoCamEstimateEngineTest.dir/DependInfo.cmake"
   )

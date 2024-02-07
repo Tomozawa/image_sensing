@@ -46,17 +46,12 @@ def find_corners(result, img_file_name, grid_len, row, col, zrot, xrot, yrot):
 
     print('detecing controllpoints...')
     
-    ret, corners = cv2.findChessboardCorners(src, (col, row), None)
+    ret, corners = cv2.findChessboardCorners(src, (row, col), None)
 
     if not ret:
         raise ImageProcessingException('failed to detection of control points')
     
     image_points = cv2.cornerSubPix(src, corners, (5, 5), (-1, -1), (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01))
-
-    src_with_corners = np.copy(src)
-    cv2.drawChessboardCorners(src_with_corners, (col, row), image_points, True)
-    cv2.imshow('calibration', src_with_corners)
-    cv2.waitKey(0)
 
     print(f'succeed to detect control points: {len(image_points)}')
 
@@ -74,7 +69,7 @@ def main():
 # xml file must be named as "cal_description.xml"
 # following tags are used to describe calibration file
 #
-# <calibration type="mono"> - the root tag
+# <calibration> - the root tag
 # <camera> - represents camera. It must contain <focal> and <sensor>
 # <focal> - describe focal distance. The unit is mm. (decimal value is supported.)
 # <sensor> - describe image sensor spec. It must contain <width> and <height>
@@ -91,9 +86,9 @@ def main():
 #
 ###### example ######
 # <?xml version="1.0" encoding="UTF-8" ?>
-# <calibration type="mono">
+# <calibration>
 #   <camera>
-#       <focal>3<focal>
+#       <focal>3mm<focal>
 #       <sensor>
 #           <width>3</width>
 #           <height>3</height>
@@ -120,7 +115,7 @@ def main():
     
     root = ET.fromstring(raw_string)
 
-    if root.tag != 'calibration' or root.attrib['type'] != 'mono':
+    if root.tag != 'calibration':
         raise DescripterException('invalied root tag name')
     
     corners = {
@@ -166,6 +161,10 @@ def main():
         except ImageProcessingException as e:
             print(f'there was error in {img_file_name}: {e}')
 
+    for image_points_in_view in corners['image_points']:
+        if len(image_points_in_view) < 15:
+            raise ImageProcessingException(f'there are too few control points: {len(corners["image_points"])}')
+
     initial_camera_matrix = np.array([
         [img_size[0] * focal_length / sensor_dimension[0], 0, img_size[0] / 2],
         [0, img_size[1] * focal_length / sensor_dimension[1], img_size[1] / 2],
@@ -193,8 +192,7 @@ def main():
     with open(file_name, 'w', encoding='utf-8') as file:
         json.dump({
             'matrix': mtx.tolist(),
-            'distortion': dist.tolist(),
-            'focal_distance': focal_length
+            'distortion': dist.tolist()
         }, file)
 
     print(f'caribration file is saved to {file_name}')

@@ -31,9 +31,4 @@ namespace sensing_utils{
         perspective_point.x = perspective_point_vec[0] * magnification[0];
         perspective_point.y = perspective_point_vec[1] * magnification[1];
     }
-
-    double full_scale_atan(double x, double y){
-        const bool need_to_invert = x < 0;
-        return std::atan(y / x) + ((need_to_invert)? std::numbers::pi : 0);
-    }
 } //utils

@@ -15,10 +15,3 @@ add_executable(
 )
 
 target_link_libraries(ball_detecter ${OpenCV_LIBRARIES})
-
-add_executable(
-    StereoCamEstimateEngineTest
-    StereoCamEstimateEngineTest.cpp
-)
-
-target_link_libraries(StereoCamEstimateEngineTest ${OpenCV_LIBRARIES})

@@ -129,43 +129,6 @@ ball_detecter/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ball_detecter.dir/build.make CMakeFiles/ball_detecter.dir/build
 .PHONY : ball_detecter/fast
 
-#=============================================================================
-# Target rules for targets named StereoCamEstimateEngineTest
-
-# Build rule for target.
-StereoCamEstimateEngineTest: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 StereoCamEstimateEngineTest
-.PHONY : StereoCamEstimateEngineTest
-
-# fast build rule for target.
-StereoCamEstimateEngineTest/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StereoCamEstimateEngineTest.dir/build.make CMakeFiles/StereoCamEstimateEngineTest.dir/build
-.PHONY : StereoCamEstimateEngineTest/fast
-
-StereoCamEstimateEngineTest.obj: StereoCamEstimateEngineTest.cpp.obj
-.PHONY : StereoCamEstimateEngineTest.obj
-
-# target to build an object file
-StereoCamEstimateEngineTest.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StereoCamEstimateEngineTest.dir/build.make CMakeFiles/StereoCamEstimateEngineTest.dir/StereoCamEstimateEngineTest.cpp.obj
-.PHONY : StereoCamEstimateEngineTest.cpp.obj
-
-StereoCamEstimateEngineTest.i: StereoCamEstimateEngineTest.cpp.i
-.PHONY : StereoCamEstimateEngineTest.i
-
-# target to preprocess a source file
-StereoCamEstimateEngineTest.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StereoCamEstimateEngineTest.dir/build.make CMakeFiles/StereoCamEstimateEngineTest.dir/StereoCamEstimateEngineTest.cpp.i
-.PHONY : StereoCamEstimateEngineTest.cpp.i
-
-StereoCamEstimateEngineTest.s: StereoCamEstimateEngineTest.cpp.s
-.PHONY : StereoCamEstimateEngineTest.s
-
-# target to generate assembly for a file
-StereoCamEstimateEngineTest.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StereoCamEstimateEngineTest.dir/build.make CMakeFiles/StereoCamEstimateEngineTest.dir/StereoCamEstimateEngineTest.cpp.s
-.PHONY : StereoCamEstimateEngineTest.cpp.s
-
 ball_detecter.obj: ball_detecter.cpp.obj
 .PHONY : ball_detecter.obj
 
@@ -222,11 +185,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... StereoCamEstimateEngineTest"
 	@echo "... ball_detecter"
-	@echo "... StereoCamEstimateEngineTest.obj"
-	@echo "... StereoCamEstimateEngineTest.i"
-	@echo "... StereoCamEstimateEngineTest.s"
 	@echo "... ball_detecter.obj"
 	@echo "... ball_detecter.i"
 	@echo "... ball_detecter.s"
