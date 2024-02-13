@@ -1,6 +1,7 @@
 #include <utils.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/core/utils/logger.hpp>
+#include <cmath>
 
 using namespace cv;
 
@@ -26,4 +27,8 @@ namespace sensing_utils{
         perspective_point.x = perspective_point_vec[0];
         perspective_point.y = perspective_point_vec[1];
     }
-} //utils
+
+    double fullscale_atan(const double x, const double y){
+        return std::fmod(((x >= 0)? std::atan(y / x) : (std::atan(y / x) + std::numbers::pi)) + 2.0 * std::numbers::pi, 2.0 * std::numbers::pi);
+    }
+} //sensing_utils

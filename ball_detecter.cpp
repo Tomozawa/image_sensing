@@ -25,18 +25,11 @@ struct CameraCalibration{
     CameraMatrix camera_matrix;
     Vec<double, 5> distorsion;
     double focal_distance;
-    Size2d sensor_dimension;
     Size image_size;
-};
-
-struct CameraScaling{
-    double distance;
-    double area;
 };
 
 void execute_calc(InputArray, OutputArray, OutputArray, OutputArray, const InRangeParams&, const PositionEstimateEngine<EngineType::MONO_CAM>&);
 CameraCalibration load_calibration_file(void);
-CameraScaling load_scaling_file(void);
 
 //グローバル変数を包む構造体
 //グローバル変数が必要なのでやむなし
@@ -75,7 +68,7 @@ struct GlobalVariables{
         /*video_capture_*/
         //Todo: 複数カメラ対応
         inline bool open_cameras(void){
-            video_capture_.open(0);
+            video_capture_.open(1);
             return video_capture_.isOpened();
         }
         //Todo: 複数カメラ対応(1つのメソッドで全部grab)
@@ -94,11 +87,9 @@ GlobalVariables global_variables;
 int main(){
     utils::logging::setLogLevel(utils::logging::LogLevel::LOG_LEVEL_DEBUG);
     CameraCalibration calibration;
-    CameraScaling scaling;
 
     try{
         calibration = load_calibration_file();
-        scaling = load_scaling_file();
     }catch(std::runtime_error& e){
         CV_LOG_ERROR(nullptr, e.what());
         std::exit(-1);
@@ -107,16 +98,10 @@ int main(){
         std::exit(-1);
     }
 
-    constexpr ScalingFactor scaling_factor = {};
     const PositionEstimateEngine<EngineType::MONO_CAM> engine(
         PointingFactor{
             .focal_distance = calibration.focal_distance,
-            .sensor_dimension = calibration.sensor_dimension,
             .image_size = calibration.image_size
-        },
-        ScalingFactor{
-            .area = scaling.area,
-            .distance = scaling.distance
         },
         calibration.camera_matrix
     );
@@ -252,7 +237,7 @@ void execute_calc(InputArray input, OutputArray output1, OutputArray output2, Ou
         polylines(image_with_contours, convex_contour, true, Scalar{0, 0, 255});
         putText(
             image_with_contours,
-            cv::format("(%d, %d, %d)", static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(position.z)),
+            cv::format("(%d, %d, %d, %d)", static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(position.z), static_cast<int>(cv::norm(position))),
             Point{static_cast<int>(moment.m10 / moment.m00), static_cast<int>(moment.m01 / moment.m00)},
             HersheyFonts::FONT_HERSHEY_SIMPLEX,
             1,
@@ -295,28 +280,8 @@ CameraCalibration load_calibration_file(){
 
     result.focal_distance = calibration_json.at("focal_distance");
 
-    const json& sensor_dimension_ref = calibration_json.at("sensor_dimension");
-    result.sensor_dimension = Size2d(sensor_dimension_ref.at(0), sensor_dimension_ref.at(1));
-
     const json& image_size_ref = calibration_json.at("image_size");
     result.image_size = Size(image_size_ref.at(0), image_size_ref.at(1));
-
-    return result;
-}
-
-CameraScaling load_scaling_file(){
-    CameraScaling result;
-
-    std::ifstream ifs("camera_scaling.json");
-    json scaling_json;
-    if(!ifs.is_open()) throw std::runtime_error("Can't open camera_scaling.json");
-
-    ifs >> scaling_json;
-
-    ifs.close();
-
-    result.area = scaling_json.at("area");
-    result.distance = scaling_json.at("distance");
 
     return result;
 }

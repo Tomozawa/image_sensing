@@ -10,47 +10,23 @@ namespace position_estimate_engine{
         STEREO_CAM
     };
 
-    struct ScalingFactor{
-        double area;
-        double distance;
-    };
-
     struct PointingFactor{
         double focal_distance;
-        cv::Size2d sensor_dimension;
         cv::Size image_size;
     };
 
     class PositionEstimateEngineBase{
-        private:
+        protected:
         const PointingFactor pointing_factor;
         const CameraMatrix camera_matrix;
 
-        double get_mm_px_ratio() const {
-            const double sensor_aspect = pointing_factor.sensor_dimension.width / pointing_factor.sensor_dimension.height;
-            const double image_aspect = pointing_factor.image_size.width / pointing_factor.image_size.height;
-
-            return (sensor_aspect >= image_aspect)? pointing_factor.sensor_dimension.height / pointing_factor.image_size.height : pointing_factor.sensor_dimension.width / pointing_factor.image_size.width;
-        }
-
-        double full_scale_atan(double x, double y) const {
-            const bool need_to_invert = x < 0;
-            return std::atan(y / x) + (need_to_invert)? std::numbers::pi : 0;
-        }
-
-        protected:
         virtual double distance(const double area) const = 0;
         cv::Vec3d direction(const cv::Point2d image_point) const{
             cv::Point2d perspective_point;
             sensing_utils::get_perspective_point(image_point, perspective_point, camera_matrix);
 
-            const double projection_height_mm = std::sqrt(
-                std::pow(perspective_point.x, 2)
-                + std::pow(perspective_point.y, 2)
-            ) * get_mm_px_ratio();
-
-            const double theta = std::atan(projection_height_mm / pointing_factor.focal_distance);
-            const double phi = full_scale_atan(image_point.x - pointing_factor.image_size.width, image_point.y - pointing_factor.image_size.height);
+            const double phi = sensing_utils::fullscale_atan(perspective_point.x, perspective_point.y);
+            const double theta = std::atan(cv::norm(perspective_point));
 
             const cv::Vec3d phi_vec(
                 -std::sin(phi),
@@ -85,17 +61,20 @@ namespace position_estimate_engine{
 
     template<>
     class PositionEstimateEngine<EngineType::MONO_CAM> : public PositionEstimateEngineBase{
-        private:
-        const ScalingFactor scaling_factor;
-
         public:
-        PositionEstimateEngine(const PointingFactor pointing_factor, const ScalingFactor scaling_factor, const CameraMatrix camera_matrix):
-            PositionEstimateEngineBase(pointing_factor, camera_matrix),
-            scaling_factor(scaling_factor)
+        PositionEstimateEngine(const PointingFactor pointing_factor, const CameraMatrix camera_matrix):
+            PositionEstimateEngineBase(pointing_factor, camera_matrix)
         {}
 
         double distance(const double area) const override{
-            return scaling_factor.distance * std::sqrt(scaling_factor.area / area);
+            constexpr double ball_diameter_mm = 190;
+            const double ball_horizontal_radius = (ball_diameter_mm / 2.0 /pointing_factor.focal_distance) * camera_matrix(0, 0);
+            const double ball_vertical_radius = (ball_diameter_mm / 2.0 / pointing_factor.focal_distance) * camera_matrix(1, 1);
+            const double standard_ball_area = std::numbers::pi * ball_horizontal_radius * ball_vertical_radius;
+
+            const double normalized_distance = std::sqrt(standard_ball_area / area);
+
+            return normalized_distance * pointing_factor.focal_distance;
         }
     };
 }

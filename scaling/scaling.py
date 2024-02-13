@@ -271,7 +271,7 @@ def main():
 
     timestamp = datetime.datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d%H%M%S')
 
-    with open(f'camera_scaling_{timestamp}', 'w', encoding='utf-8') as file:
+    with open(f'camera_scaling_{timestamp}.json', 'w', encoding='utf-8') as file:
         json.dump(
             {
                 "area": b / a,

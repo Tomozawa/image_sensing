@@ -46,7 +46,7 @@ def find_corners(result, img_file_name, grid_len, row, col, zrot, xrot, yrot):
 
     print('detecing controllpoints...')
     
-    ret, corners = cv2.findChessboardCorners(src, (row, col), None)
+    ret, corners = cv2.findChessboardCorners(src, (col, row), None)
 
     if not ret:
         raise ImageProcessingException('failed to detection of control points')
@@ -72,9 +72,6 @@ def main():
 # <calibration> - the root tag
 # <camera> - represents camera. It must contain <focal> and <sensor>
 # <focal> - describe focal distance. The unit is mm. (decimal value is supported.)
-# <sensor> - describe image sensor spec. It must contain <width> and <height>
-# <width> - width of image sensor. The unit is mm. (decimal value is supported)
-# <height> - height of image sensor. The unit is mm. (decimal value is suported)
 # <img src="path_to_img"> - represents image file to be used for calibration. It must contains all the following tags
 # <grid len="area length of grid"> - how many control points to find. m, cm, and mm are supportd as the unit of length(default unit is mm)
 # <row> - num of vertical control points, included by <ctrlpts>
@@ -89,10 +86,6 @@ def main():
 # <calibration>
 #   <camera>
 #       <focal>3mm<focal>
-#       <sensor>
-#           <width>3</width>
-#           <height>3</height>
-#       </sensor>
 #   </camera>
 #   <img src="./calibration.png">
 #       <grid len="5cm">
@@ -165,11 +158,9 @@ def main():
         raise ImageProcessingException('failed to calibration')
 
     focal_dist = None
-    sensor_dim = []
     camera_elem = root.find('camera')
     if camera_elem != None:
         focal_dist = float(camera_elem.find('focal').text)
-        sensor_dim = [float(camera_elem.find('sensor/width').text), float(camera_elem.find('sensor/height').text)]
     else:
         raise DescripterException('<camera> is not found')
     
@@ -182,7 +173,6 @@ def main():
             'matrix': mtx.tolist(),
             'distortion': dist.tolist(),
             'focal_distance': focal_dist,
-            'sensor_dimension': sensor_dim,
             'image_size': img_size
         }, file)
 
