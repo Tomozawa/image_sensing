@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<calibration>
+    <camera>
+        <focal>4.15</focal>
+    </camera>
+    <img src="calibration (1).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (2).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (3).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (4).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (5).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (6).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (7).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (8).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (9).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (10).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (11).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (12).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (13).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (14).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    <img src="calibration (15).jpg">
+        <grid len="14mm">
+            <row>11</row>
+            <col>7</col>
+        </grid>
+        <posture>
+            <zrot>0</zrot>
+            <xrot>0</xrot>
+            <yrot>0</yrot>
+        </posture>
+    </img>
+    </calibration>

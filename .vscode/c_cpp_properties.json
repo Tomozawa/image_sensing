@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${default}",
+                "./include/image_sensing",
+                "~/image_sensing/install/nhk24_utils/include/**"
+            ],
+            "defines": []
+        }
+    ],
+    "version": 4
+}
