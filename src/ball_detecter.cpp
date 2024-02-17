@@ -110,7 +110,7 @@ class Application final : public rclcpp::Node{
     {
         utils::logging::setLogLevel(utils::logging::LogLevel::LOG_LEVEL_DEBUG);
         
-        rcpputils::assert_true(global_variables.open_cameras());
+        if(global_variables.open_cameras()) rclcpp::shutdown();
 
         create_wall_timer(16ms, std::bind(&Application::loop, this));
     }
