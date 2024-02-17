@@ -4,10 +4,17 @@
             "name": "Linux",
             "includePath": [
                 "${default}",
+                "/usr/include/**",
+                "/opt/ros/humble/include/**",
                 "./include/image_sensing",
-                "~/image_sensing/install/nhk24_utils/include/**"
+                "~/image_sensing/install/nhk24_utils/include/**",
+                "/usr/include/opencv4"
             ],
-            "defines": []
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++20",
+            "intelliSenseMode": "linux-gcc-x64"
         }
     ],
     "version": 4

@@ -1,5 +1,7 @@
 {
-    "files.associations": {
-        "numbers": "cpp"
-    }
+    "C_Cpp.default.includePath": [
+        "${default}",
+        "./include/image_sening",
+        "~/image_sensing/install/nhk24_utils/nhk24_utils"
+    ]
 }

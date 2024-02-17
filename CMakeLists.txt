@@ -11,6 +11,7 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rcpputils REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nhk24_utils REQUIRED)
@@ -27,16 +28,26 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+set(common_compile_features c_std_17;cxx_std_20)
+
 add_executable(ball_detecter
   src/ball_detecter.cpp
   src/utils.cpp
 )
 target_include_directories(ball_detecter PUBLIC ./include/image_sensing)
-ament_target_dependencies(ball_detecter rclcpp OpenCV nhk24_utils)
-target_compile_features(ball_detecter PUBLIC c_std_17 cxx_std_20)
+ament_target_dependencies(ball_detecter rclcpp rcpputils OpenCV nhk24_utils)
+target_compile_features(ball_detecter PUBLIC ${common_compile_features})
+
+add_executable(setup_filter
+  src/setup_filter.cpp
+  src/utils.cpp
+)
+target_include_directories(setup_filter PUBLIC ./include/image_sensing)
+ament_target_dependencies(setup_filter PUBLIC rclcpp rcpputils OpenCV nhk24_utils)
+target_compile_features(setup_filter PUBLIC ${common_compile_features})
 
 install(
-  TARGETS ball_detecter
+  TARGETS ball_detecter setup_filter
   DESTINATION lib/${PROJECT_NAME}
 )
 

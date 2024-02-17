@@ -6,11 +6,13 @@
 
 #include <geometry_msgs/msg/point.hpp>
 
+#include <rcpputils/asserts.hpp>
+
 namespace sensing_utils{
     template<unsigned char DilateErodeTimes>
     void closing(cv::InputArray input, cv::OutputArray output){
         
-        CV_DbgAssert(input.isMat());
+        rcpputils::require_true(input.isMat());
 
         cv::Mat mat_buf[3] = {cv::Mat(input.getMat()), cv::Mat(), cv::Mat()};
         const cv::Mat kernel = cv::getStructuringElement(cv::MorphShapes::MORPH_ELLIPSE, cv::Size(3, 3));
@@ -25,7 +27,7 @@ namespace sensing_utils{
     template<unsigned char DilateErodeTimes>
     void opening(cv::InputArray input, cv::OutputArray output){
         
-        CV_DbgAssert(input.isMat());
+        rcpputils::require_true(input.isMat());
 
         cv::Mat mat_buf[3] = {cv::Mat(input.getMat()), cv::Mat(), cv::Mat()};
         cv::Mat kernel = cv::getStructuringElement(cv::MorphShapes::MORPH_ELLIPSE, cv::Size(3, 3));

@@ -17,6 +17,7 @@
 #include <nlohmann/json.hpp>
 
 #include <rclcpp/rclcpp.hpp>
+#include <rcpputils/asserts.hpp>
 #include <nhk24_utils/msg/balls.hpp>
 #include <geometry_msgs/msg/point.hpp>
 
@@ -90,11 +91,7 @@ class Application final : public rclcpp::Node{
     const PositionEstimateEngine<EngineType::MONO_CAM> engine;
     std::shared_ptr<rclcpp::Publisher<nhk24_utils::msg::Balls>> publisher;
 
-#ifdef _DEBUG
-    void execute_calc(InputArray, nhk24_utils::msg::Balls&, OutputArray, OutputArray, OutputArray, const InRangeParams&, const PositionEstimateEngine<EngineType::MONO_CAM>&);
-#else
     void execute_calc(InputArray, nhk24_utils::msg::Balls&, const InRangeParams&, const PositionEstimateEngine<EngineType::MONO_CAM>&);
-#endif
     CameraCalibration load_calibration_file(void);
 
     public:
@@ -113,88 +110,14 @@ class Application final : public rclcpp::Node{
     {
         utils::logging::setLogLevel(utils::logging::LogLevel::LOG_LEVEL_DEBUG);
         
-        CV_Assert(global_variables.open_cameras());
+        rcpputils::assert_true(global_variables.open_cameras());
 
         create_wall_timer(16ms, std::bind(&Application::loop, this));
-
-#ifdef _DEBUG
-        createTrackbar(
-            "Hue min",
-            window_name,
-            nullptr,
-            255,
-            [](int val, void*){
-                global_variables.replace_param(val, 0);
-            }
-        );
-        createTrackbar(
-            "Hue max",
-            window_name,
-            nullptr,
-            255,
-            [](int val, void*){
-                global_variables.replace_param(val, 1);
-            }
-        );
-        createTrackbar(
-            "Saturation min",
-            window_name,
-            nullptr,
-            255,
-            [](int val, void*){
-                global_variables.replace_param(val, 2);
-            }
-        );
-        createTrackbar(
-            "Saturation max",
-            window_name,
-            nullptr,
-            255,
-            [](int val, void*){
-                global_variables.replace_param(val, 3);
-            }
-        );
-        createTrackbar(
-            "Value min",
-            window_name,
-            nullptr,
-            255,
-            [](int val, void*){
-                global_variables.replace_param(val, 4);
-            }
-        );
-        createTrackbar(
-            "Value max",
-            window_name,
-            nullptr,
-            255,
-            [](int val, void*){
-                global_variables.replace_param(val, 5);
-            }
-        );
-#endif
     }
 
     void loop();
 };
 
-#ifdef _DEBUG
-void Application::loop(){
-    global_variables.grabs();
-    Mat input_img, undistort_img, output1_img, output2_img, output3_img;
-    global_variables.retrieve(input_img);
-
-    undistort(input_img, undistort_img, calibration.camera_matrix, calibration.distorsion);
-
-    execute_calc(undistort_img, output1_img, output2_img, output3_img, global_variables.replace_param(), engine);
-
-    imshow("output1", output1_img);
-    imshow("output2", output2_img);
-    imshow("output3", output3_img);
-}
-#else
-
-#endif
 void Application::loop(){
     global_variables.grabs();
     Mat input_img, undistort_img;
@@ -208,79 +131,12 @@ void Application::loop(){
 
     publisher->publish(message);
 }
-#ifdef _DEBUG
-void Application::execute_calc(InputArray input, nhk24_utils::msg::Balls&, OutputArray output1, OutputArray output2, OutputArray output3, const InRangeParams& params, const PositionEstimateEngine<EngineType::MONO_CAM>& engine){
-    Mat image, hsv, blur, hsv_filtered, closed, opened, canny_img, image_with_contours;
-    std::vector<std::vector<Point>> contours;
-    std::vector<Vec4i> hierarchy;
-    CV_DbgAssert(input.isMat());
-    image = input.getMat();
 
-    cvtColor(image, hsv, ColorConversionCodes::COLOR_BGR2HSV_FULL);
-    GaussianBlur(hsv, blur, Size(11, 11), 8.5, 8.5);
-
-    //普通のinRangeだと赤色が検知できない
-    hsv_range(blur, global_variables.get_hue_lut(), params.s_min, params.s_max, params.v_min, params.v_max, hsv_filtered);
-
-    opening<2>(hsv_filtered, opened);
-    closing<2>(opened, closed);
-    
-    Canny(closed, canny_img, 25, 75);
-
-    findContours(canny_img, contours, hierarchy, RetrievalModes::RETR_LIST, ContourApproximationModes::CHAIN_APPROX_SIMPLE);
-
-    image.copyTo(image_with_contours);
-
-    for(size_t i = 0; i < contours.size(); i++){
-        if(hierarchy.at(i)[3] >= 0) continue;
-
-        std::vector<Point> applox_contour, convex_contour;
-        approxPolyDP(contours[i], applox_contour, 0.005 * arcLength(contours[i], true), true);
-        convexHull(applox_contour, convex_contour);
-
-        const double area = contourArea(convex_contour);
-
-        if(area < 400) continue;
-        if(convex_contour.size() < 10) continue;
-
-        const Moments moment = moments(convex_contour, true);
-
-        // polylines(image_with_contours, convex_contour, true, Scalar{0, 0, 255});
-        // putText(
-        //     image_with_contours,
-        //     cv::format("%d-gon", convex_contour.size()),
-        //     Point{static_cast<int>(moment.m10 / moment.m00), static_cast<int>(moment.m01 / moment.m00)},
-        //     HersheyFonts::FONT_HERSHEY_SIMPLEX,
-        //     1,
-        //     Scalar{0, 0, 255},
-        //     3
-        // );
-
-        const Point2d image_point(moment.m10 / moment.m00, moment.m01 / moment.m00);
-        const cv::Point3d position = engine.estimate_position(image_point, area);
-
-        polylines(image_with_contours, convex_contour, true, Scalar{0, 0, 255});
-        putText(
-            image_with_contours,
-            cv::format("(%d, %d, %d, %d)", static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(position.z), static_cast<int>(cv::norm(position))),
-            Point{static_cast<int>(moment.m10 / moment.m00), static_cast<int>(moment.m01 / moment.m00)},
-            HersheyFonts::FONT_HERSHEY_SIMPLEX,
-            1,
-            Scalar{0, 0, 255},
-            3
-        );
-    }
-
-    output1.move(hsv_filtered);
-    output2.move(opened);
-    output3.move(image_with_contours);
-}
-#else
 void Application::execute_calc(InputArray input, nhk24_utils::msg::Balls& message, const InRangeParams& params, const PositionEstimateEngine<EngineType::MONO_CAM>& engine){
     Mat image, hsv, blur, hsv_filtered, closed, opened, canny_img;
     std::vector<std::vector<Point>> contours;
     std::vector<Vec4i> hierarchy;
-    CV_DbgAssert(input.isMat());
+    rcpputils::require_true(input.isMat());
     image = input.getMat();
 
     cvtColor(image, hsv, ColorConversionCodes::COLOR_BGR2HSV_FULL);
@@ -323,12 +179,11 @@ void Application::execute_calc(InputArray input, nhk24_utils::msg::Balls& messag
 
     }
 }
-#endif
 
 Application::CameraCalibration Application::load_calibration_file(){
     CameraCalibration result;
 
-    std::ifstream ifs("camera_calibration.json");
+    std::ifstream ifs("./src/image_sensign/src/camera_calibration.json");
     json calibration_json;
     if(!ifs.is_open()) throw std::runtime_error("Can't open camera_calibration.json");
 

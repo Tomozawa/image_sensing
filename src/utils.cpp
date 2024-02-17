@@ -7,7 +7,7 @@ using namespace cv;
 
 namespace sensing_utils{
     void hsv_range(InputArray input, const Vec<uint8_t, 256>& hue_lut, int s_min, int s_max, int v_min, int v_max, OutputArray output){
-        CV_DbgAssert(input.isMat());
+        rcpputils::require_true(input.isMat());
 
         Mat split_hsv[3];
         Mat binaried_hsv[3];
