@@ -19,6 +19,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rcpputils/asserts.hpp>
 
+#include <cstdio>
+
 using namespace cv;
 using namespace in_range_params;
 using namespace sensing_utils;
@@ -33,6 +35,11 @@ private:
     VideoCapture video_capture_;
     LUT_TYPE hue_lut_;
 public:
+    GlobalVariables():
+        params_{0, 0, 0, 0, 0, 0},
+        video_capture_(),
+        hue_lut_()
+    {}
     /* params_ */
     //Todo: 値チェック
     //Todo: インデックスをテンプレート化または列挙子にする
@@ -60,8 +67,10 @@ public:
     /*video_capture_*/
     //Todo: 複数カメラ対応
     inline bool open_cameras(void){
-        video_capture_.open(0);
-        return video_capture_.isOpened();
+        video_capture_.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+        video_capture_.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+        video_capture_.open(14, cv::CAP_V4L2);
+        return video_capture_.isOpened() && video_capture_.get(cv::CAP_PROP_FRAME_WIDTH) == 640.0 && video_capture_.get(cv::CAP_PROP_FRAME_HEIGHT) == 480.0;
     }
     //Todo: 複数カメラ対応(1つのメソッドで全部grab)
     inline bool grabs(void){return video_capture_.grab();}
@@ -198,6 +207,7 @@ void Application::execute_calc(InputArray input, OutputArray output1, OutputArra
 
     //普通のinRangeだと赤色が検知できない
     hsv_range(blur, global_variables.get_hue_lut(), params.s_min, params.s_max, params.v_min, params.v_max, hsv_filtered);
+    RCLCPP_INFO_STREAM(this->get_logger(), "hsv_range arg: " << params.s_min << " " << params.s_max << " " << params.v_min << " " << params.v_max);
 
     opening<2>(hsv_filtered, opened);
     closing<2>(opened, closed);

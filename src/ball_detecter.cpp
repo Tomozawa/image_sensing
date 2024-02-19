@@ -41,10 +41,18 @@ class Application final : public rclcpp::Node{
 
     struct GlobalVariables{
         private:
-            InRangeParams params_ = {0, 0, 0, 0, 0, 0};
+            InRangeParams params_;
             VideoCapture video_capture_;
             LUT_TYPE hue_lut_;
         public:
+            GlobalVariables():
+                params_{128, 70, 92, 185, 239, 255},
+                video_capture_(),
+                hue_lut_()
+            {
+                calc_hue_lut(params_.h_min, params_.h_max, hue_lut_);
+            }
+
             /* params_ */
             //Todo: 値チェック
             //Todo: インデックスをテンプレート化または列挙子にする
@@ -72,8 +80,10 @@ class Application final : public rclcpp::Node{
             /*video_capture_*/
             //Todo: 複数カメラ対応
             inline bool open_cameras(void){
-                video_capture_.open(1);
-                return video_capture_.isOpened();
+                video_capture_.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+                video_capture_.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+                video_capture_.open(14, cv::CAP_V4L2);
+                return video_capture_.isOpened() && video_capture_.get(cv::CAP_PROP_FRAME_WIDTH) == 640.0 && video_capture_.get(cv::CAP_PROP_FRAME_HEIGHT) == 480.0;
             }
             //Todo: 複数カメラ対応(1つのメソッドで全部grab)
             inline bool grabs(void){return video_capture_.grab();}
@@ -90,6 +100,7 @@ class Application final : public rclcpp::Node{
     const CameraCalibration calibration;
     const PositionEstimateEngine<EngineType::MONO_CAM> engine;
     std::shared_ptr<rclcpp::Publisher<nhk24_utils::msg::Balls>> publisher;
+    rclcpp::TimerBase::SharedPtr timer;
 
     void execute_calc(InputArray, nhk24_utils::msg::Balls&, const InRangeParams&, const PositionEstimateEngine<EngineType::MONO_CAM>&);
     CameraCalibration load_calibration_file(void);
@@ -106,13 +117,12 @@ class Application final : public rclcpp::Node{
             },
             calibration.camera_matrix
         ),
-        publisher(create_publisher<nhk24_utils::msg::Balls>("balls", 256))
+        publisher(create_publisher<nhk24_utils::msg::Balls>("balls", 256)),
+        timer(create_wall_timer(16ms, std::bind(&Application::loop, this)))
     {
-        utils::logging::setLogLevel(utils::logging::LogLevel::LOG_LEVEL_DEBUG);
+        utils::logging::setLogLevel(utils::logging::LogLevel::LOG_LEVEL_WARNING);
         
-        if(global_variables.open_cameras()) rclcpp::shutdown();
-
-        create_wall_timer(16ms, std::bind(&Application::loop, this));
+        if(!global_variables.open_cameras()) rclcpp::shutdown();
     }
 
     void loop();
@@ -121,7 +131,7 @@ class Application final : public rclcpp::Node{
 void Application::loop(){
     global_variables.grabs();
     Mat input_img, undistort_img;
-    nhk24_utils::msg::Balls message;
+    nhk24_utils::msg::Balls message{};
 
     global_variables.retrieve(input_img);
 
@@ -129,7 +139,7 @@ void Application::loop(){
 
     execute_calc(undistort_img, message, global_variables.replace_param(), engine);
 
-    publisher->publish(message);
+    if(message.balls.size() > 0) publisher->publish(message);
 }
 
 void Application::execute_calc(InputArray input, nhk24_utils::msg::Balls& message, const InRangeParams& params, const PositionEstimateEngine<EngineType::MONO_CAM>& engine){
@@ -139,10 +149,13 @@ void Application::execute_calc(InputArray input, nhk24_utils::msg::Balls& messag
     rcpputils::require_true(input.isMat());
     image = input.getMat();
 
+    // RCLCPP_INFO(this->get_logger(), "h_min:%d, s_min:%d, v:min:%d, h_max:%d, s_max:%d, v_max:%d", params.h_min, params.s_min, params.v_min, params.h_max, params.s_max, params.v_max);
+
     cvtColor(image, hsv, ColorConversionCodes::COLOR_BGR2HSV_FULL);
     GaussianBlur(hsv, blur, Size(11, 11), 8.5, 8.5);
 
     //普通のinRangeだと赤色が検知できない
+    // hsv_range(blur, global_variables.get_hue_lut(), params.s_min, params.s_max, params.v_min, params.v_max, hsv_filtered);
     hsv_range(blur, global_variables.get_hue_lut(), params.s_min, params.s_max, params.v_min, params.v_max, hsv_filtered);
 
     opening<2>(hsv_filtered, opened);
@@ -153,8 +166,11 @@ void Application::execute_calc(InputArray input, nhk24_utils::msg::Balls& messag
     findContours(canny_img, contours, hierarchy, RetrievalModes::RETR_LIST, ContourApproximationModes::CHAIN_APPROX_SIMPLE);
 
     message = nhk24_utils::msg::Balls();
+
+    RCLCPP_INFO_STREAM(this->get_logger(), "contours.size: " << contours.size());
+
     for(size_t i = 0; i < contours.size(); i++){
-        nhk24_utils::msg::Ball ball;
+        nhk24_utils::msg::Ball ball{};
         if(hierarchy.at(i)[3] >= 0) continue;
 
         std::vector<Point> applox_contour, convex_contour;
@@ -176,14 +192,13 @@ void Application::execute_calc(InputArray input, nhk24_utils::msg::Balls& messag
         ball.id = 0U;
 
         message.balls.push_back(ball);
-
     }
 }
 
 Application::CameraCalibration Application::load_calibration_file(){
     CameraCalibration result;
 
-    std::ifstream ifs("./src/image_sensign/src/camera_calibration.json");
+    std::ifstream ifs("./src/image_sensing/src/camera_calibration.json");
     json calibration_json;
     if(!ifs.is_open()) throw std::runtime_error("Can't open camera_calibration.json");
 
