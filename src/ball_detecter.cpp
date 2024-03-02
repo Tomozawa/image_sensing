@@ -31,9 +31,9 @@ using namespace identify_engine;
 using namespace nlohmann;
 using namespace std::chrono_literals;
 
-using LUT_TYPE = LUT_TYPE_<uint8_t, 3, 256>;
-using LUT_PARAM = LUT_PARAM_<uint8_t, 3>;
-using LUT_VALUE_PAIR = LUT_VALUE_PAIR_<uint8_t>;
+using LUT_TYPE = LUT_TYPE_;
+using LUT_PARAM = LUT_PARAM_<3>;
+using LUT_VALUE_PAIR = LUT_VALUE_PAIR_;
 
 struct CameraCalibration{
     CameraMatrix camera_matrix;
@@ -82,7 +82,7 @@ class Application final : public rclcpp::Node{
         empty_identify_engine(),
         publisher(create_publisher<nhk24_utils::msg::Balls>("balls", 256)),
         timer(create_wall_timer(16ms, std::bind(&Application::loop, this))),
-        paddy_lut(calc_lut<uint8_t, 3, 256>(
+        paddy_lut(calc_lut(
             LUT_PARAM{
                 LUT_VALUE_PAIR{
                     static_cast<uint8_t>(paddy_params.h_min), static_cast<uint8_t>(paddy_params.h_max)
@@ -95,7 +95,7 @@ class Application final : public rclcpp::Node{
                 }
             }
         )),
-        empty_lut(calc_lut<uint8_t, 3, 256>(
+        empty_lut(calc_lut(
             LUT_PARAM{
                 LUT_VALUE_PAIR{
                     static_cast<uint8_t>(empty_params.h_min), static_cast<uint8_t>(empty_params.h_max)

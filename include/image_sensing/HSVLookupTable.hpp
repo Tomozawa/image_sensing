@@ -8,37 +8,36 @@
 #include <array>
 
 namespace hue_lut{
-    template<typename Tp, size_t R, size_t C>
-    using LUT_TYPE_ = cv::Matx<Tp, R, C>;
+    using LUT_TYPE_ = cv::Vec<cv::Scalar_<uint8_t>, 256>;
 
-    template<typename Tp>
-    using LUT_VALUE_PAIR_ = std::array<Tp, 2>;
+    using LUT_VALUE_PAIR_ = std::pair<uint8_t, uint8_t>;
 
-    template<typename Tp, size_t R>
-    using LUT_PARAM_ = std::array<LUT_VALUE_PAIR_<Tp>, R>;
+    template<size_t Cn>
+    using LUT_PARAM_ = std::array<LUT_VALUE_PAIR_, Cn>;
 
-    template<typename Tp, size_t R, size_t C>
-    inline void calc_lut(const LUT_PARAM_<Tp, R>& param, LUT_TYPE_<Tp, R, C>& lut){
-        LUT_TYPE_<Tp, R, C> input{};
+    template<size_t Cn>
+    inline void calc_lut(const LUT_PARAM_<Cn>& param, LUT_TYPE_& lut){
+        static_assert(Cn <= 4U);
+        LUT_TYPE_ input{};
 
-        for(size_t r = 0; r < R; r++){
-            const Tp min = param.at(r).at(0);
-            const Tp max = param.at(r).at(1);
+        std::array<bool, Cn> end_flags = {false,};
+        for(int i = 0; i < lut.cols; i++){
+            for(size_t c = 0; c < Cn; c++){
+                if(end_flags.at(c)) continue;
+                const size_t access_index = (i + param.at(c).first) % 256U;
+                lut(access_index)[c] = UINT8_MAX;
 
-            for(size_t c = 0; c < C; c++){
-                const unsigned access_index = (min + c) % C;
-                if(access_index == max) break;
-                input(r, c) = UINT8_MAX;
+                if(access_index == param.at(c).second) end_flags.at(c) = true;
             }
         }
 
         lut = input;
     }
 
-    template<typename Tp, size_t R, size_t C>
-    inline LUT_TYPE_<Tp, R, C> calc_lut(const LUT_PARAM_<Tp, R>& param){
-        LUT_TYPE_<Tp, R, C> result{};
-        calc_lut<Tp, R, C>(param, result);
+    template<size_t Cn>
+    inline LUT_TYPE_ calc_lut(const LUT_PARAM_<Cn>& param){
+        LUT_TYPE_ result{};
+        calc_lut(param, result);
         return result;
     }
 } //hue_lut

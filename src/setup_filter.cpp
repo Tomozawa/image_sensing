@@ -29,8 +29,9 @@ using namespace position_estimate_engine;
 using namespace nlohmann;
 using namespace std::chrono_literals;
 
-using LUT_TYPE = LUT_TYPE_<uint8_t, 1, 256>;
-using LUT_PARAM = LUT_PARAM_<uint8_t, 1>;
+using LUT_TYPE = LUT_TYPE_;
+using LUT_VALUE_PAIR = LUT_VALUE_PAIR_;
+using LUT_PARAM = LUT_PARAM_<1>;
 
 struct GlobalVariables{
 private:
@@ -52,11 +53,11 @@ public:
         switch(index){
             case 0: 
                 params_.h_min = val;
-                calc_lut<uint8_t, 1, 256>(LUT_PARAM{static_cast<uint8_t>(params_.h_min), static_cast<uint8_t>(params_.h_max)}, hue_lut_);
+                calc_lut(LUT_PARAM{LUT_VALUE_PAIR{static_cast<uint8_t>(params_.h_min), static_cast<uint8_t>(params_.h_max)}}, hue_lut_);
                 break;
             case 1:
                 params_.h_max = val;
-                calc_lut<uint8_t, 1, 256>(LUT_PARAM{static_cast<uint8_t>(params_.h_min), static_cast<uint8_t>(params_.h_max)}, hue_lut_);
+                calc_lut(LUT_PARAM{LUT_VALUE_PAIR{static_cast<uint8_t>(params_.h_min), static_cast<uint8_t>(params_.h_max)}}, hue_lut_);
                 break;
             case 2: params_.s_min = val; break;
             case 3: params_.s_max = val; break;
