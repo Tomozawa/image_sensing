@@ -3,6 +3,8 @@
 #include <opencv2/core/utils/logger.hpp>
 #include <cmath>
 
+#include <iostream>
+
 using namespace cv;
 
 namespace sensing_utils{
@@ -19,7 +21,7 @@ namespace sensing_utils{
     }
 
     bool equals(const Mat& mat1, const Mat& mat2){
-        rcpputils::require_true(mat1.type() == CV_16U && mat2.type() == CV_16U);
+        rcpputils::require_true(mat1.type() == CV_16S && mat2.type() == CV_16S);
 
         if(mat1.rows != mat2.rows || mat1.cols != mat2.cols) return false;
 

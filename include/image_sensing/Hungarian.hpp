@@ -94,7 +94,7 @@ namespace hungarian{
             rcpputils::require_true(matrix.type() == CV_16S);
 
             cv::Mat result = cv::Mat::ones(cv::Size(matrix.cols, matrix.rows), CV_16S);
-            cv::Mat min_max_loc_mask = cv::Mat::ones(cv::Size(matrix.cols, matrix.rows), CV_16S);
+            cv::Mat min_max_loc_mask(cv::Size(matrix.cols, matrix.rows), CV_8U, UINT8_MAX);
 
             std::vector<int> row_lines, col_lines;
             get_lines(matrix, row_lines, col_lines);
@@ -102,14 +102,14 @@ namespace hungarian{
             for(const auto row_line : row_lines){
                 for(int c = 0; c < matrix.cols; c++){
                     result.at<int16_t>(row_line, c)--;
-                    min_max_loc_mask.at<int16_t>(row_line, c) = 0;
+                    min_max_loc_mask.at<uint8_t>(row_line, c) = 0U;
                 }
             }
 
             for(const auto col_line : col_lines){
                 for(int r = 0; r < matrix.rows; r++){
                     result.at<int16_t>(r, col_line)--;
-                    min_max_loc_mask.at<int16_t>(r, col_line) = 0;
+                    min_max_loc_mask.at<uint8_t>(r, col_line) = 0U;
                 }
             }
 

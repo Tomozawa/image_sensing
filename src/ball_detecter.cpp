@@ -3,6 +3,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/core/utils/logger.hpp>
 #include <opencv2/calib3d.hpp>
+#include <opencv2/core.hpp>
 #include <memory>
 #include <vector>
 #include <fstream>
@@ -141,8 +142,8 @@ void Application<paddy_params, empty_params, color_id>::loop(){
             nhk24_utils::msg::Balls::_balls_type::value_type().set__color(static_cast<std::underlying_type_t<ColorID>>(ColorID::PURPLE)).set__id(empty_ball.first).set__position(empty_ball.second)
         );
     }
-
     if(message.balls.size() > 0) publisher->publish(message);
+
 }
 
 void prepare_image(InputArray input, OutputArray output, const CameraMatrix& camera_matrix, const Vec<double, 5>& dist){
@@ -208,7 +209,7 @@ std::vector<std::pair<nhk24_utils::msg::Ball::_id_type, nhk24_utils::msg::Ball::
         );
     }
     ball_ids = identify_engine.identify(ball_moment_points);
-    
+
     rcpputils::assert_true(ball_positions.size() == ball_ids.size());
     std::vector<std::pair<nhk24_utils::msg::Ball::_id_type, nhk24_utils::msg::Ball::_position_type>> result{};
     for(size_t i = 0U; i < ball_positions.size(); i++){

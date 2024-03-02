@@ -18,14 +18,14 @@ namespace hue_lut{
     template<size_t Cn>
     inline void calc_lut(const LUT_PARAM_<Cn>& param, LUT_TYPE_& lut){
         static_assert(Cn <= 4U);
-        LUT_TYPE_ input(cv::Size(1, 256), CV_8UC(Cn));
+        LUT_TYPE_ input(cv::Size(256, 1), CV_8UC(Cn));
 
         std::array<bool, Cn> end_flags = {false,};
-        for(int i = 0; i < lut.cols; i++){
+        for(int i = 0; i < input.cols; i++){
             for(size_t c = 0; c < Cn; c++){
                 if(end_flags.at(c)) continue;
                 const size_t access_index = (i + param.at(c).first) % 256U;
-                input.at<uint8_t>(0, 3U * access_index + c) = UINT8_MAX;
+                input.at<uint8_t>(0, Cn * access_index + c) = UINT8_MAX;
 
                 if(access_index == param.at(c).second) end_flags.at(c) = true;
             }
