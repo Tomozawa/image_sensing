@@ -39,9 +39,9 @@ namespace sensing_utils{
         output.move(mat_buf[2]);
     }
 
-    void hsv_range(cv::InputArray, const cv::Vec<uint8_t, 256>&, int, int, int, int, cv::OutputArray);
-
     void get_perspective_point(const cv::Point2d, cv::Point2d&, const CameraMatrix);
 
     double fullscale_atan(const double, const double);
+
+    bool equals(const cv::Mat& mat1, const cv::Mat& mat2);
 } //sensing_utils

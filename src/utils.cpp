@@ -6,20 +6,6 @@
 using namespace cv;
 
 namespace sensing_utils{
-    void hsv_range(InputArray input, const Vec<uint8_t, 256>& hue_lut, int s_min, int s_max, int v_min, int v_max, OutputArray output){
-        rcpputils::require_true(input.isMat());
-
-        Mat split_hsv[3];
-        Mat binaried_hsv[3];
-        split(input.getMat(), split_hsv);
-        LUT(split_hsv[0], hue_lut, binaried_hsv[0]);
-        inRange(split_hsv[1], cv::Scalar{static_cast<double>(s_min)}, cv::Scalar{static_cast<double>(s_max)}, binaried_hsv[1]);
-        inRange(split_hsv[2], cv::Scalar{static_cast<double>(v_min)}, cv::Scalar{static_cast<double>(v_max)}, binaried_hsv[2]);
-
-        Mat sv;
-        bitwise_and(binaried_hsv[1], binaried_hsv[2], output, binaried_hsv[0]);
-    }
-
     void get_perspective_point(const cv::Point2d image_point, cv::Point2d& perspective_point, const CameraMatrix camera_matrix){
         const cv::Vec3d image_point_vec(image_point.x, image_point.y, 1);
         const cv::Vec3d perspective_point_vec = camera_matrix.inv() * image_point_vec;
@@ -30,5 +16,19 @@ namespace sensing_utils{
 
     double fullscale_atan(const double x, const double y){
         return std::fmod(((x >= 0)? std::atan(y / x) : (std::atan(y / x) + std::numbers::pi)) + 2.0 * std::numbers::pi, 2.0 * std::numbers::pi);
+    }
+
+    bool equals(const Mat& mat1, const Mat& mat2){
+        rcpputils::require_true(mat1.type() == CV_16U && mat2.type() == CV_16U);
+
+        if(mat1.rows != mat2.rows || mat1.cols != mat2.cols) return false;
+
+        for(int r = 0; r < mat1.rows; r++){
+            for(int c = 0; c < mat1.cols; c++){
+                if(mat1.at<uint16_t>(r, c) != mat2.at<uint16_t>(r, c)) return false;
+            }
+        }
+
+        return true;
     }
 } //sensing_utils

@@ -12,7 +12,7 @@
 #include <functional>
 #include <PositionEstimateEngine.hpp>
 #include <InRangeParams.hpp>
-#include <HueLookupTable.hpp>
+#include <HSVLookupTable.hpp>
 #include <utils.hpp>
 #include <nlohmann/json.hpp>
 
@@ -28,6 +28,9 @@ using namespace hue_lut;
 using namespace position_estimate_engine;
 using namespace nlohmann;
 using namespace std::chrono_literals;
+
+using LUT_TYPE = LUT_TYPE_<uint8_t, 1, 256>;
+using LUT_PARAM = LUT_PARAM_<uint8_t, 1>;
 
 struct GlobalVariables{
 private:
@@ -49,11 +52,11 @@ public:
         switch(index){
             case 0: 
                 params_.h_min = val;
-                calc_hue_lut(params_.h_min, params_.h_max, hue_lut_);
+                calc_lut<uint8_t, 1, 256>(LUT_PARAM{static_cast<uint8_t>(params_.h_min), static_cast<uint8_t>(params_.h_max)}, hue_lut_);
                 break;
             case 1:
                 params_.h_max = val;
-                calc_hue_lut(params_.h_min, params_.h_max, hue_lut_);
+                calc_lut<uint8_t, 1, 256>(LUT_PARAM{static_cast<uint8_t>(params_.h_min), static_cast<uint8_t>(params_.h_max)}, hue_lut_);
                 break;
             case 2: params_.s_min = val; break;
             case 3: params_.s_max = val; break;
@@ -99,6 +102,7 @@ class Application final : public rclcpp::Node{
     const rclcpp::TimerBase::SharedPtr timer;
 
     void execute_calc(InputArray, OutputArray, OutputArray, OutputArray, const InRangeParams&, const PositionEstimateEngine<EngineType::MONO_CAM>&);
+    void hsv_range(InputArray, const LUT_TYPE&, InRangeParams::ValueType, InRangeParams::ValueType, InRangeParams::ValueType, InRangeParams::ValueType, OutputArray);
     CameraCalibration load_calibration_file(void);
 
     public:
@@ -250,6 +254,20 @@ void Application::execute_calc(InputArray input, OutputArray output1, OutputArra
     output1.move(hsv_filtered);
     output2.move(opened);
     output3.move(image_with_contours);
+}
+
+void Application::hsv_range(InputArray input, const LUT_TYPE& hue_lut, int s_min, int s_max, int v_min, int v_max, OutputArray output){
+    rcpputils::require_true(input.isMat());
+
+    Mat split_hsv[3];
+    Mat binaried_hsv[3];
+    split(input.getMat(), split_hsv);
+    LUT(split_hsv[0], hue_lut, binaried_hsv[0]);
+    inRange(split_hsv[1], cv::Scalar{static_cast<double>(s_min)}, cv::Scalar{static_cast<double>(s_max)}, binaried_hsv[1]);
+    inRange(split_hsv[2], cv::Scalar{static_cast<double>(v_min)}, cv::Scalar{static_cast<double>(v_max)}, binaried_hsv[2]);
+
+    Mat sv;
+    bitwise_and(binaried_hsv[1], binaried_hsv[2], output, binaried_hsv[0]);
 }
 
 Application::CameraCalibration Application::load_calibration_file(){
