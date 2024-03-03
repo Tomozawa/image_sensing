@@ -4,8 +4,6 @@
 
 #include <Hungarian.hpp>
 
-#include <iostream>
-
 namespace identify_engine{
     class IdentifyEngine final{
         private:
@@ -44,7 +42,6 @@ namespace identify_engine{
             if(last_balls.size() > 0){
                 cv::Mat cost_matrix;
                 const bool is_transposition = calc_cost_matrix(balls, cost_matrix);
-                std::cout << cv::format(cost_matrix, cv::Formatter::FMT_DEFAULT) << std::endl;
                 const std::vector<cv::Point> assignments = hungarian::hungarian::assign(cost_matrix, is_transposition);
 
                 for(const auto& assignment : assignments){
