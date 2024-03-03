@@ -4,6 +4,8 @@
 
 #include <Hungarian.hpp>
 
+#include <iostream>
+
 namespace identify_engine{
     class IdentifyEngine final{
         private:
@@ -18,7 +20,7 @@ namespace identify_engine{
                         result.at<int16_t>(b, last_b) = static_cast<int16_t>(cv::norm(balls.at(b) - std::get<1>(last_balls.at(last_b))));
                     }
                 }
-                return true;
+                return false;
             }else{
                 result.create(last_balls.size(), balls.size(), CV_16S);
                 for(int b = 0; b < result.cols; b++){
@@ -26,7 +28,7 @@ namespace identify_engine{
                         result.at<int16_t>(last_b, b) = static_cast<int16_t>(cv::norm(balls.at(b) - std::get<1>(last_balls.at(last_b))));
                     }
                 }
-                return false;
+                return true;
             }
         }
 
@@ -42,12 +44,15 @@ namespace identify_engine{
             if(last_balls.size() > 0){
                 cv::Mat cost_matrix;
                 const bool is_transposition = calc_cost_matrix(balls, cost_matrix);
+                std::cout << cv::format(cost_matrix, cv::Formatter::FMT_DEFAULT) << std::endl;
                 const std::vector<cv::Point> assignments = hungarian::hungarian::assign(cost_matrix, is_transposition);
 
                 for(const auto& assignment : assignments){
                     if(assignment.y < 0) continue;
                     
-                    if(assignment.x >= 0) result.at(assignment.y) = std::get<0>(last_balls.at(assignment.x));
+                    if(assignment.x >= 0){
+                        result.at(assignment.y) = std::get<0>(last_balls.at(assignment.x));
+                    }
                     else result.at(assignment.y) = next_id++;
                 }
             }else{
