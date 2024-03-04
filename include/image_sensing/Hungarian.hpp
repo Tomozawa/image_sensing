@@ -119,15 +119,58 @@ namespace hungarian{
             return result;
         }
 
-        static cv::Mat recursive(cv::Mat&& matrix){
-            cv::Mat next_matrix = matrix - calc_subtract_matrix(matrix);
-            const bool is_equals = sensing_utils::equals(next_matrix, matrix);
-            matrix.release();
-            if(is_equals){
-                return next_matrix;
-            }else{
-                return recursive(std::move(next_matrix));
+        static std::vector<cv::Point> do_assign(cv::Mat matrix, const bool transposition){
+            rcpputils::require_true(matrix.type() == CV_16S);
+
+            auto try_assign = [transposition](cv::Mat matrix)->std::optional<std::vector<cv::Point>>{
+                std::vector<std::optional<int>> zero_rows(matrix.rows, std::nullopt);
+
+                for(int c = 0; c < matrix.cols; c++){
+                    for(const auto& zero : find_zeros(matrix.col(c)))
+                    if(!zero_rows.at(zero.y).has_value()){
+                        zero_rows.at(zero.y) = c;
+                        break;
+                    }
+                }
+
+                std::vector<cv::Point> result{};
+                for(int r = 0; r < matrix.rows; r++){
+                    if(!zero_rows.at(r).has_value()) return {};
+                    result.push_back(
+                        (!transposition)? cv::Point(*zero_rows.at(r), r)
+                        : cv::Point(r, *zero_rows.at(r))
+                    );
+                }
+
+                return result;
+            };
+
+            std::optional<std::vector<cv::Point>> assignment = try_assign(matrix);
+
+            while(!assignment.has_value()){
+                matrix -= calc_subtract_matrix(matrix);
+                assignment = try_assign(matrix);
             }
+
+            return *assignment;
+        }
+
+        static cv::Mat pre_process(cv::Mat matrix){
+            rcpputils::require_true(matrix.type() == CV_16S);
+
+            for(int r = 0; r < matrix.rows; r++){
+                double min_val;
+                cv::minMaxLoc(matrix.row(r), &min_val);
+                matrix.row(r).forEach<int16_t>([min_val](int16_t& val, const int*){val -= min_val;});
+            }
+
+            for(int c = 0; c < matrix.cols; c++){
+                double min_val;
+                cv::minMaxLoc(matrix.col(c), &min_val);
+                matrix.col(c).forEach<int16_t>([min_val](int16_t& val, const int*){val -= min_val;});
+            }
+
+            return matrix;
         }
 
         public:
@@ -143,27 +186,9 @@ namespace hungarian{
             cv::Mat input_matrix = input.getMat();
             input_matrix.resize(input_matrix.cols);
 
-            const cv::Mat matrix = recursive(std::move(input_matrix));
+            pre_process(input_matrix);
 
-            for(int r = 0; r < matrix.rows; r++){
-                std::optional<int> zero_col{};
-                for(int c = 0; c < matrix.cols; c++){
-                    if(matrix.at<int16_t>(r, c) == 0){
-                        zero_col = c;
-                        break;
-                    }
-                }
-                rcpputils::assert_true(zero_col.has_value());
-
-                const int assigned_r = (r < input.rows())? r : -1;
-                const int assigned_c = *zero_col;
-                result.push_back(
-                    (!transposition)? cv::Point(assigned_c, assigned_r)
-                    : cv::Point(assigned_r, assigned_c)
-                );
-            }
-
-            return result;
+            return do_assign(input_matrix, transposition);
         }
     };
 }//hungarian

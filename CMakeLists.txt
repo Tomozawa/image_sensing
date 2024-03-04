@@ -15,7 +15,6 @@ find_package(rcpputils REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nhk24_utils REQUIRED)
-find_package(backward_ros REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -36,7 +35,7 @@ add_executable(ball_detecter
   src/utils.cpp
 )
 target_include_directories(ball_detecter PUBLIC ./include/image_sensing)
-ament_target_dependencies(ball_detecter rclcpp rcpputils OpenCV nhk24_utils)
+ament_target_dependencies(ball_detecter PUBLIC rclcpp rcpputils OpenCV nhk24_utils)
 target_compile_features(ball_detecter PUBLIC ${common_compile_features})
 
 add_executable(setup_filter
@@ -47,10 +46,16 @@ target_include_directories(setup_filter PUBLIC ./include/image_sensing)
 ament_target_dependencies(setup_filter PUBLIC rclcpp rcpputils OpenCV nhk24_utils)
 target_compile_features(setup_filter PUBLIC ${common_compile_features})
 
-add_backward(ball_detecter)
+add_executable(hungarian_test
+  src/hungarian_test.cpp
+  src/utils.cpp
+)
+target_include_directories(hungarian_test PUBLIC ./include/image_sensing)
+ament_target_dependencies(hungarian_test PUBLIC rclcpp rcpputils OpenCV nhk24_utils)
+target_compile_features(hungarian_test PUBLIC ${common_compile_features})
 
 install(
-  TARGETS ball_detecter setup_filter
+  TARGETS ball_detecter setup_filter hungarian_test
   DESTINATION lib/${PROJECT_NAME}
 )
 
