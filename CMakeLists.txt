@@ -15,6 +15,7 @@ find_package(rcpputils REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nhk24_utils REQUIRED)
+find_package(backward_ros REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -37,6 +38,7 @@ add_executable(ball_detecter
 target_include_directories(ball_detecter PUBLIC ./include/image_sensing)
 ament_target_dependencies(ball_detecter PUBLIC rclcpp rcpputils OpenCV nhk24_utils)
 target_compile_features(ball_detecter PUBLIC ${common_compile_features})
+add_backward(ball_detecter)
 
 add_executable(setup_filter
   src/setup_filter.cpp

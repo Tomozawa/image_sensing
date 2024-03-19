@@ -23,6 +23,8 @@
 #include <nhk24_utils/msg/balls.hpp>
 #include <geometry_msgs/msg/point.hpp>
 
+#include <iostream>
+
 using namespace cv;
 using namespace in_range_params;
 using namespace sensing_utils;
@@ -113,6 +115,7 @@ class Application final : public rclcpp::Node{
         utils::logging::setLogLevel(utils::logging::LogLevel::LOG_LEVEL_WARNING);
         
         const bool is_camera_opened = video_capture.isOpened() && video_capture.get(CAP_PROP_FRAME_WIDTH) == calibration.image_size.width && video_capture.get(CAP_PROP_FRAME_HEIGHT) == calibration.image_size.height;
+        RCLCPP_INFO(this->get_logger(), "is_opened: %d, width: %lf, height: %lf", video_capture.isOpened(), video_capture.get(CAP_PROP_FRAME_WIDTH), video_capture.get(CAP_PROP_FRAME_HEIGHT));
         if(!is_camera_opened) rclcpp::shutdown();
     }
 
@@ -187,7 +190,7 @@ std::vector<std::pair<nhk24_utils::msg::Ball::_id_type, nhk24_utils::msg::Ball::
 
         const double area = contourArea(convex_contour);
 
-        if(area < 400) continue;
+        if(area < 10000) continue;
         if(convex_contour.size() < 10) continue;
 
         const Moments ball_moments = moments(convex_contour);
@@ -260,10 +263,7 @@ CameraCalibration load_calibration_file(){
 }
 
 VideoCapture open_cameras(void){
-    VideoCapture result;
-    result.set(cv::CAP_PROP_FRAME_WIDTH, 640);
-    result.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
-    result.open(14, cv::CAP_V4L2);
+    VideoCapture result("v4l2src device=/dev/video0 ! image/jpeg,width=640, height=480, framerate=(fraction)30/1 !jpegdec !videoconvert ! appsink");
     return result;
 }
 
@@ -271,10 +271,10 @@ int main(int argc, char* argv[]){
     using BlueBallApplication = Application<
         InRangeParams{
             .h_min = 128,
-            .s_min = 70,
-            .v_min = 92,
-            .h_max = 185,
-            .s_max = 239,
+            .s_min = 31,
+            .v_min = 144,
+            .h_max = 177,
+            .s_max = 233,
             .v_max = 255
         },
         InRangeParams{
