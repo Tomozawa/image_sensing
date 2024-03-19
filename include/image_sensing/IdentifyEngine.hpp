@@ -50,7 +50,7 @@ namespace identify_engine{
                     if(assignment.x >= 0){
                         result.at(assignment.y) = std::get<0>(last_balls.at(assignment.x));
                     }
-                    else result.at(assignment.y) = next_id++;
+                    else result.at(assignment.y) = next_id+;
                 }
             }else{
                 for(auto& elem : result){
