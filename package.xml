@@ -14,6 +14,7 @@
   <depend>libopencv-dev</depend>
   <depend>geometry_msgs</depend>
   <depend>nhk24_utils</depend>
+  <depend>backward_ros</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

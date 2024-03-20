@@ -10,6 +10,8 @@
 
 #include <utils.hpp>
 
+#include <iostream>
+
 namespace hungarian{
     class hungarian final{
         private:
@@ -116,13 +118,14 @@ namespace hungarian{
             double min_val;
             cv::minMaxLoc(matrix, &min_val, nullptr, nullptr, nullptr, min_max_loc_mask);
             result *= min_val;
+
             return result;
         }
 
-        static std::vector<cv::Point> do_assign(cv::Mat matrix, const bool transposition){
+        static std::vector<cv::Point> do_assign(cv::Mat matrix){
             rcpputils::require_true(matrix.type() == CV_16S);
 
-            auto try_assign = [transposition](cv::Mat matrix)->std::optional<std::vector<cv::Point>>{
+            auto try_assign = [](cv::Mat matrix)->std::optional<std::vector<cv::Point>>{
                 std::vector<std::optional<int>> zero_rows(matrix.rows, std::nullopt);
 
                 for(int c = 0; c < matrix.cols; c++){
@@ -137,8 +140,7 @@ namespace hungarian{
                 for(int r = 0; r < matrix.rows; r++){
                     if(!zero_rows.at(r).has_value()) return {};
                     result.push_back(
-                        (!transposition)? cv::Point(*zero_rows.at(r), r)
-                        : cv::Point(r, *zero_rows.at(r))
+                        cv::Point(*zero_rows.at(r), r)
                     );
                 }
 
@@ -188,7 +190,16 @@ namespace hungarian{
 
             pre_process(input_matrix);
 
-            return do_assign(input_matrix, transposition);
+            auto assignment = do_assign(input_matrix);
+            for(auto& pair : assignment){
+                if(pair.y >= input.rows()) pair.y = -1;
+                if(transposition){
+                    const double x_buf = pair.x;
+                    pair.x = pair.y;
+                    pair.y = x_buf;
+                }
+            }
+            return assignment;
         }
     };
 }//hungarian
