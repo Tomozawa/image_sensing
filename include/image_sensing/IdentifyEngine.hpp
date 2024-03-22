@@ -45,9 +45,11 @@ namespace identify_engine{
 
                 const auto assignments = hungarian::Hungarian<uint16_t>(cost_matrix).solve().second;
 
-                for(int b = 0; b < assignments.size(); b++){
-                    const int last_b = assignments.at(b);
-
+                for(int i = 0; i < assignments.size(); i++){
+                    const int b = (!is_transposition)? i : assignments.at(i);
+                    const int last_b = (!is_transposition)? assignments.at(i) : i;
+                    
+                    if(b >= 0) result.at(b) = (last_b >= 0)? std::get<0>(last_balls.at(last_b)) : next_id++;
                 }
             }else{
                 for(auto& elem : result){
