@@ -319,7 +319,7 @@ namespace hungarian{
                 alloc(U, -1), rev_alloc(U, -1), prev(2 * U), cost{_cost}, matching_size(0){
             assert(U >= V);
         }
-        std::pair<T, std::vector<int> > solve(){
+        std::pair<T, std::vector<int>> solve(){
             init_feasible_dual(), construct_graph();
             bool end = false;
             maximum_matching(true);
