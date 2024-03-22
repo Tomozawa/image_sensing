@@ -10,7 +10,7 @@ namespace identify_engine{
         std::vector<std::tuple<uint16_t, cv::Point>> last_balls;
         uint16_t next_id;
 
-        bool calc_cost_matrix(std::vector<cv::Point>& balls, cv::Mat& result){
+        bool calc_cost_matrix(std::vector<cv::Point>& balls, std::vector<std::vector<uint8_t>>& result){
             if(balls.size() < last_balls.size()){
                 result.create(balls.size(), last_balls.size(), CV_16S);
                 for(int b = 0; b < result.rows; b++){
@@ -42,6 +42,7 @@ namespace identify_engine{
             if(last_balls.size() > 0){
                 cv::Mat cost_matrix;
                 const bool is_transposition = calc_cost_matrix(balls, cost_matrix);
+
                 const std::vector<cv::Point> assignments = hungarian::hungarian::assign(cost_matrix, is_transposition);
 
                 for(const auto& assignment : assignments){
